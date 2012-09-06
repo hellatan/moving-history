@@ -37,7 +37,12 @@
 
 	function loadImage (el, fn) {
 		var img = new Image()
-			, src = el.getAttribute('data-src');
+			, src = el.getAttribute('data-src')
+			, curSrc = el.getAttribute('src');
+		if (src === curSrc) {
+			// console.log('loaded already')
+			return;
+		}
 		img.onload = function() {
 			if (!! el.parent)
 				el.parent.replaceChild(img, el)
