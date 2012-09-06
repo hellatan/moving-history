@@ -18,7 +18,7 @@
  *      </li>
  * </ul>
  *
- * *** INCLUDE SCSS/MODULES/SIMPLE-ACCORDION.SCSS ON YOUR TEMPLATE ***
+ * **** INCLUDE SCSS/MODULES/SIMPLE-ACCORDION.SCSS ON YOUR TEMPLATE ****
  *
  * The wrapping UL which has the accordion method applied to it can be classed or ID'd in any way
  *      The list head must have 'accordion-list-head' class
