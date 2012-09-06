@@ -31,7 +31,7 @@
     $.fn.simpleAccordionList = function () {
         var allItems = $('.accordion-list-items');
 
-        this.children('.accordion-list-head').find('a').click( function () {
+        this.children('.accordion-list-head').find('a').click(function () {
             var main = $(this).parent('.accordion-list-head'),
                 items = $(this).siblings('.accordion-list-items');
 
