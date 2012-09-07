@@ -18,7 +18,7 @@
  *      </li>
  * </ul>
  *
- * **** INCLUDE SCSS/MODULES/SIMPLE-ACCORDION.SCSS ON YOUR TEMPLATE ****
+ * *** INCLUDE SCSS/PLUGINS/SIMPLE-ACCORDION.SCSS ON YOUR TEMPLATE ***
  *
  * The wrapping UL which has the accordion method applied to it can be classed or ID'd in any way
  *      The list head must have 'accordion-list-head' class
@@ -38,12 +38,12 @@
             allItems.stop(true).slideUp();
 
             main.addClass(function (index, clss) {
-                if (clss.indexOf('is-collapsed') != -1) {
-                    main.removeClass('is-collapsed');
-                    return "is-expanded";
+                if (clss.indexOf('accordion-list-is-collapsed') != -1) {
+                    main.removeClass('accordion-list-is-collapsed');
+                    return "accordion-list-is-expanded";
                 }
-                main.removeClass('is-expanded');
-                return 'is-collapsed';
+                main.removeClass('accordion-list-is-expanded');
+                return 'accordion-list-is-collapsed';
             });
 
             if (items.is(':hidden')) {
