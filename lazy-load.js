@@ -83,4 +83,5 @@
 
 	processScroll();
 	addEventListener('scroll',processScroll);
+	addEventListener('resize',processScroll);
 }(this));
