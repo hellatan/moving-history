@@ -32,23 +32,23 @@
         var allItems = $('.accordion-list-items');
 
         this.children('.accordion-list-head').find('a').click(function () {
-            var main = $(this).parent('.accordion-list-head'),
+            var heads = $('.accordion-list-head'),
+                myHead = $(this).parent('.accordion-list-head'),
                 items = $(this).siblings('.accordion-list-items');
 
-            allItems.stop(true).slideUp();
+            allItems
+                .stop(true)
+                .slideUp();
 
-            main.addClass(function (index, clss) {
-                if (clss.indexOf('accordion-list-is-collapsed') != -1) {
-                    main.removeClass('accordion-list-is-collapsed');
-                    return "accordion-list-is-expanded";
-                }
-                main.removeClass('accordion-list-is-expanded');
-                return 'accordion-list-is-collapsed';
-            });
+            heads
+                .removeClass('accordion-list-is-expanded')
+                .addClass('accordion-list-is-collapsed');
 
             if (items.is(':hidden')) {
+                myHead.addClass('accordion-list-is-expanded');
                 items.stop(true).slideDown();
             }
+
             return false;
         });
 
