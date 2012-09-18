@@ -36,9 +36,7 @@
                 myHead = $(this).parent('.accordion-list-head'),
                 items = $(this).siblings('.accordion-list-items');
 
-            allItems
-                .stop(true)
-                .slideUp();
+	    allItems.slideUp();
 
             heads
                 .removeClass('accordion-list-is-expanded')
@@ -46,9 +44,8 @@
 
             if (items.is(':hidden')) {
                 myHead.addClass('accordion-list-is-expanded');
-                items.stop(true).slideDown();
+		items.slideDown();
             }
-
             return false;
         });
 
