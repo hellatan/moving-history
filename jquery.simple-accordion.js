@@ -9,7 +9,7 @@
  *
  * <ul class="my-class">
  *      <li class="accordion-list-head is-collapsed">
- *          <a href="#">head item (expands the list)</a>
+ *          <a href="#" class="accordion-list-trigger">head item (expands the list)</a>
  *          <ul class="accordion-list-items" style='display: none;'>
  *              <li><a href="#">item</a></li>
  *              <li><a href="#">item</a></li>
@@ -31,12 +31,12 @@
     $.fn.simpleAccordionList = function () {
         var allItems = $('.accordion-list-items');
 
-        this.children('.accordion-list-head').find('a').click(function () {
+        this.find('.accordion-list-trigger').click(function () {
             var heads = $('.accordion-list-head'),
                 myHead = $(this).parent('.accordion-list-head'),
                 items = $(this).siblings('.accordion-list-items');
 
-	    allItems.slideUp();
+            allItems.slideUp();
 
             heads
                 .removeClass('accordion-list-is-expanded')
@@ -44,7 +44,7 @@
 
             if (items.is(':hidden')) {
                 myHead.addClass('accordion-list-is-expanded');
-		items.slideDown();
+                items.slideDown();
             }
             return false;
         });
