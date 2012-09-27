@@ -43,6 +43,7 @@
             if (master.length && master.is(':visible')) {
                 master.find('.accordion-list').slideToggle();
             }
+            return false;
         });
 
         this.find('.accordion-list-trigger').click(function () {
