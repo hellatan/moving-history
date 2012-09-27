@@ -31,6 +31,14 @@
     $.fn.simpleAccordionList = function () {
         var allItems = $('.accordion-list-items');
 
+        this.find('.master-accordion-list-trigger').click(function () {
+            var master = $(this).parents('.master');
+
+            if (master.length && master.is(':visible')) {
+                master.find('.accordion-list').slideToggle();
+            }
+        });
+
         this.find('.accordion-list-trigger').click(function () {
             var heads = $('.accordion-list-head'),
                 myHead = $(this).parent('.accordion-list-head'),
@@ -39,11 +47,11 @@
             allItems.slideUp();
 
             heads
-                .removeClass('accordion-list-is-expanded')
-                .addClass('accordion-list-is-collapsed');
+                .removeClass('is-expanded')
+                .addClass('is-collapsed');
 
             if (items.is(':hidden')) {
-                myHead.addClass('accordion-list-is-expanded');
+                myHead.addClass('is-expanded');
                 items.slideDown();
             }
             return false;
