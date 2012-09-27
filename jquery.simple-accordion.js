@@ -28,7 +28,13 @@
  *      $('.my-class').simpleAccordionList()
  */
 (function ($) {
-    $.fn.simpleAccordionList = function () {
+    $.fn.simpleAccordionList = function (settings) {
+
+	    var options = $.extend(true,
+		    {},
+		    settings || {}
+	    );
+
         var allItems = $('.accordion-list-items');
 
         this.find('.master-accordion-list-trigger').click(function () {
