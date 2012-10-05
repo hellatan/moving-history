@@ -3598,13 +3598,13 @@
 			newS = o.items[o.d['width']],
 			seco = o[o.d['height']],
 			secp = is_percentage(seco);
-
+			nw = newS - ms_getPaddingBorderMargin($(all[0]), o, 'Width'); // GEDAS - IMPROVEMENT - MOVED FROM EACH LOOP TO COUNT JUST FIRST ELEMENT DIMENSIONS
+		
 		all.each(function() {
-			var $t = $(this),
-				nw = newS - ms_getPaddingBorderMargin($t, o, 'Width');
-
+			var $t = $(this);
+				
 			$t[o.d['width']](nw);
-			if (secp && !(o.direction == 'up' || o.direction == 'down')) // GEDAS - FIX FOR VERTICAL CAROUSEL
+			if (secp && !(o.direction == 'up' || o.direction == 'down')) // GEDAS - FIX - FOR VERTICAL CAROUSEL
 			{
 				$t[o.d['height']](ms_getPercentage(nw, seco));
 			}
