@@ -1,5 +1,5 @@
 /*
- *	jQuery carouFredSel 6.0.3
+ *	jQuery carouFredSel 6.0.5
  *	Demo's and documentation:
  *	caroufredsel.frebsite.nl
  *
@@ -95,13 +95,7 @@
 			{
 				if (!is_percentage(opts[opts.d['width']]))
 				{
-					// GEDAS - FIX FOR VERTICAL CAROUSEL
-					if (opts.direction == 'up' || opts.direction == 'down') {
-						opts[opts.d['height']] = '100%';
-					} else {
-						opts[opts.d['width']] = '100%';
-					}
-					// END OF FIX
+					opts[opts.d['width']] = '100%';
 				}
 			}
 
@@ -305,7 +299,6 @@
 				'right'			: 'auto',
 				'bottom'		: 'auto',
 				'left'			: 0,
-				'zIndex'		: 1,
 				'marginTop'		: 0,
 				'marginRight'	: 0,
 				'marginBottom'	: 0,
@@ -718,13 +711,13 @@
 				opts.items.visibleConf.old = opts.items.visible;
 				if (opts.items.visibleConf.variable)
 				{
-					var vI = gn_getVisibleItemsNext(a_itm, opts, itms.total-nI);
+					var vI = cf_getItemsAdjust(gn_getVisibleItemsNext(a_itm, opts, itms.total-nI), opts, opts.items.visibleConf.adjust, $tt0);
 					if (opts.items.visible+nI <= vI && nI < itms.total)
 					{
 						nI++;
-						vI = gn_getVisibleItemsNext(a_itm, opts, itms.total-nI);
+						vI = cf_getItemsAdjust(gn_getVisibleItemsNext(a_itm, opts, itms.total-nI), opts, opts.items.visibleConf.adjust, $tt0);
 					}
-					opts.items.visible = cf_getItemsAdjust(vI, opts, opts.items.visibleConf.adjust, $tt0);
+					opts.items.visible = vI;
 				}
 				else if (opts.items.filter != '*')
 				{
@@ -1179,13 +1172,13 @@
 				opts.items.visibleConf.old = opts.items.visible;
 				if (opts.items.visibleConf.variable)
 				{
-					var vI = gn_getVisibleItemsNextTestCircular(a_itm, opts, nI, lastItemNr);
+					var vI = cf_getItemsAdjust(gn_getVisibleItemsNextTestCircular(a_itm, opts, nI, lastItemNr), opts, opts.items.visibleConf.adjust, $tt0);
 					while (opts.items.visible-nI >= vI && nI < itms.total)
 					{
 						nI++;
-						vI = gn_getVisibleItemsNextTestCircular(a_itm, opts, nI, lastItemNr);
+						vI = cf_getItemsAdjust(gn_getVisibleItemsNextTestCircular(a_itm, opts, nI, lastItemNr), opts, opts.items.visibleConf.adjust, $tt0);
 					}
-					opts.items.visible = cf_getItemsAdjust(vI, opts, opts.items.visibleConf.adjust, $tt0);
+					opts.items.visible = vI;
 				}
 				else if (opts.items.filter != '*')
 				{
@@ -1337,6 +1330,7 @@
 					case 'crossfade':
 					case 'cover':
 					case 'cover-fade':
+						$cfs.css('zIndex', 1);
 						$cf2.css('zIndex', 0);
 						break;
 				}
@@ -1435,11 +1429,12 @@
 
 				//	fire onAfter callbacks
 				_onafter = function() {
+					$cfs.css('zIndex', $cfs.data('_cfs_origCss').zIndex);
 					sc_afterScroll($cfs, $cf2, sO);
 					crsl.isScrolling = false;
 					clbk.onAfter = sc_fireCallbacks($tt0, sO, 'onAfter', cb_arguments, clbk);
 					queu = sc_fireQueue($cfs, queu, conf);
-
+					
 					if (!crsl.isPaused)
 					{
 						$cfs.trigger(cf_e('play', conf));
@@ -1763,7 +1758,7 @@
 						else
 						{
 							num = itms.first;
-							itms.first += itm.length
+							itms.first += itm.length;
 						}
 						if (num < 0)
 						{
@@ -1780,17 +1775,6 @@
 				{
 					num = gn_getItemIndex(num, dev, org, itms, $cfs);
 				}
-				if (orgNum != 'end' && !org)
-				{
-					if (num < itms.first)
-					{
-						itms.first += itm.length;
-					}
-				}
-				if (itms.first >= itms.total)
-				{
-					itms.first -= itms.total;
-				}
 
 				var $cit = $cfs.children().eq(num);
 				if ($cit.length)
@@ -1799,10 +1783,22 @@
 				}
 				else
 				{
+					debug(conf, 'Correct insert-position not found! Appending item to the end.');
 					$cfs.append(itm);
 				}
 
+				if (orgNum != 'end' && !org)
+				{
+					if (num < itms.first)
+					{
+						itms.first += itm.length;
+					}
+				}
 				itms.total = $cfs.children().length;
+				if (itms.first >= itms.total)
+				{
+					itms.first -= itms.total;
+				}
 
 				$cfs.trigger(cf_e('updateSizes', conf));
 				$cfs.trigger(cf_e('linkAnchors', conf));
@@ -2937,12 +2933,11 @@
 			'items': {
 				'old': i_old,
 				'skipped': i_skp,
+				'visible': i_new,
 
 				//	DEPRECATED
-				'new': i_new,
+				'new': i_new
 				//	/DEPRECATED
-
-				'visible': i_new
 			},
 			'scroll': {
 				'items': s_itm,
@@ -3598,13 +3593,13 @@
 			newS = o.items[o.d['width']],
 			seco = o[o.d['height']],
 			secp = is_percentage(seco);
-			nw = newS - ms_getPaddingBorderMargin($(all[0]), o, 'Width'); // GEDAS - IMPROVEMENT - MOVED FROM EACH LOOP TO COUNT JUST FIRST ELEMENT DIMENSIONS
-		
+
 		all.each(function() {
-			var $t = $(this);
-				
+			var $t = $(this),
+				nw = newS - ms_getPaddingBorderMargin($t, o, 'Width');
+
 			$t[o.d['width']](nw);
-			if (secp && !(o.direction == 'up' || o.direction == 'down')) // GEDAS - FIX - FOR VERTICAL CAROUSEL
+			if (secp)
 			{
 				$t[o.d['height']](ms_getPercentage(nw, seco));
 			}
