@@ -1,5 +1,5 @@
 /*
- *	jQuery carouFredSel 6.0.5
+ *	jQuery carouFredSel 6.0.6
  *	Demo's and documentation:
  *	caroufredsel.frebsite.nl
  *
@@ -1647,7 +1647,7 @@
 				s += itms.first;
 				if (s != 0)
 				{
-					if (items.total > 0)
+					if (itms.total > 0)
 					{
 						while (s > itms.total)
 						{
