@@ -18,6 +18,7 @@
 	function Modal(options) {
 
 		var d = document,
+			is_open = false,
 			api = this,
 			$container, $modalContent, $modalInnerContent, $modalClose, $modalBg,
 			storage = {}, // used to keep track of modal content
@@ -100,20 +101,17 @@
 
 		this.update = function (name, $content) {
 			if (!storage[name]) {
-				if (!$content) {
-					storage[name] = name;
-				} else {
-					storage[name] = $content;
-				}
+				storage[name] = !$content ? name : $content;
+			} else if (name && $content) { // update the stored object with new $content
+				storage[name] = $content;
 			}
-			if (storage[name]) {
-				$modalInnerContent.html(storage[name]);
-			}
+			$modalInnerContent.html(storage[name]);
 			return this;
 		};
 
 		this.show = function () {
 			$container.show();
+			is_open = true;
 			center();
 			return this;
 		};
@@ -121,6 +119,7 @@
 		this.close = function (e) {
 			e.preventDefault();
 			$container.hide();
+			is_open = true;
 			return false;
 		};
 
@@ -138,8 +137,22 @@
 			$modalContent.css('top', top);
 		}
 
-		$(window).resize(function () {
-			center();
+		var key_codes = {
+			"27": "escape"
+		};
+
+		$(window).bind({
+			resize: function () {
+				center();
+			},
+			keyup: function (e) { // use keyCode for x-browser
+				if (!is_open) {
+					return false;
+				}
+				if (e.keyCode === 27) { // escape
+					api.close(e);
+				}
+			}
 		});
 
 		init();
