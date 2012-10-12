@@ -20,16 +20,17 @@
 		var d = document,
 			is_open = false,
 			api = this,
+			$body = $('body'),
 			$container, $modalContent, $modalInnerContent, $modalClose, $modalBg,
 			storage = {}, // used to keep track of modal content
 			create_methods = {
 				modal: function () {
-					var $modal = $('body').find('#modalOverlay');
+					var $modal = $body.find('#modalOverlay');
 					if (!$modal.length) {
 						var $div = $(d.createElement('div'))
 							.attr('id', 'modalOverlay')
 							.addClass('modal');
-						$('body').append($div);
+						$body.append($div);
 						$modal = $div;
 					}
 					$container = $modal;
@@ -95,6 +96,10 @@
 						$modalBg = $div;
 						$container.append($div);
 					}
+					$body.on('click', $modalBg, function (e) {
+						e.preventDefault();
+						api.close(e);
+					});
 					return this;
 				}
 			};
