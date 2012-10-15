@@ -1,5 +1,5 @@
-/*!
- *	jQuery carouFredSel 6.0.6
+/*
+ *	jQuery carouFredSel 6.1.0
  *	Demo's and documentation:
  *	caroufredsel.frebsite.nl
  *
@@ -95,7 +95,13 @@
 			{
 				if (!is_percentage(opts[opts.d['width']]))
 				{
-					opts[opts.d['width']] = '100%';
+					// GEDAS - FIX FOR VERTICAL CAROUSEL
+					if (opts.direction == 'up' || opts.direction == 'down') {
+						opts[opts.d['height']] = '100%';
+					} else {
+						opts[opts.d['width']] = '100%';
+					}
+					// END OF FIX
 				}
 			}
 
@@ -625,7 +631,14 @@
 					{
 						if (obj.queue)
 						{
-							$cfs.trigger(cf_e('queue', conf), [eType, [obj, num, clb]]);
+							if (obj.queue == 'last')
+							{
+								queu = [];
+							}
+							if (obj.queue != 'first' || queu.length == 0)
+							{
+								$cfs.trigger(cf_e('queue', conf), [eType, [obj, num, clb]]);
+							}
 						}
 						e.stopImmediatePropagation();
 						return debug(conf, 'Carousel currently scrolling.');
@@ -1565,13 +1578,15 @@
 					obj = false;
 				}
 
+/*
 				if (crsl.isScrolling)
 				{
 					if (!is_object(obj) || obj.duration > 0)
 					{
-						return false;
+//						return false;
 					}
 				}
+*/
 
 				if (dir != 'prev' && dir != 'next')
 				{
@@ -2159,12 +2174,17 @@
 					avail_primary = ms_getParentSize($wrp, opts, 'width');
 
 				itms.total = a_itm.length;
-				opts.maxDimension = ms_getMaxDimension(opts, avail_primary);
 
 				if (crsl.primarySizePercentage)
 				{
+					opts.maxDimension = avail_primary;
 					opts[opts.d['width']] = ms_getPercentage(avail_primary, crsl.primarySizePercentage);
 				}
+				else
+				{
+					opts.maxDimension = ms_getMaxDimension(opts, avail_primary);
+				}
+
 				if (opts.responsive)
 				{
 					opts.items.width = opts.items.sizesConf.width;
@@ -2517,31 +2537,45 @@
 
 			if (crsl.upDateOnWindowResize)
 			{
-				var $w = $(window),
-					_windowWidth = 0,
-					_windowHeight = 0;
-
-				$w.bind(cf_e('resize', conf, false, true, true), function(e) {
-					var nw = $w.width(),
-						nh = $w.height();
-
-					if (nw != _windowWidth || nh != _windowHeight)
+				var resizeFn = function(e) {
+					$cfs.trigger(cf_e('finish', conf));
+					if (opts.auto.pauseOnResize && !crsl.isPaused)
 					{
-
-						$cfs.trigger(cf_e('finish', conf));
-						if (opts.auto.pauseOnResize && !crsl.isPaused)
-						{
-							$cfs.trigger(cf_e('play', conf));
-						}
-
-						sz_resetMargin($cfs.children(), opts);
-
-						$cfs.trigger(cf_e('updateSizes', conf));
-
-						_windowWidth = nw;
-						_windowHeight = nh;
+						$cfs.trigger(cf_e('play', conf));
 					}
-				});
+					sz_resetMargin($cfs.children(), opts);
+					$cfs.trigger(cf_e('updateSizes', conf));
+				};
+
+				var $w = $(window),
+					onResize = null;
+
+				if ($.debounce && conf.onWindowResize == 'debounce')
+				{
+					onResize = $.debounce(200, resizeFn);
+				}
+				else if ($.throttle && conf.onWindowResize == 'throttle')
+				{
+					onResize = $.throttle(300, resizeFn);
+				}
+				else
+				{
+					var _windowWidth = 0,
+						_windowHeight = 0;
+
+					onResize = function() {
+						var nw = $w.width(),
+							nh = $w.height();
+
+						if (nw != _windowWidth || nh != _windowHeight)
+						{
+							resizeFn();
+							_windowWidth = nw;
+							_windowHeight = nh;
+						}
+					};
+				}
+				$w.bind(cf_e('resize', conf, false, true, true), onResize);
 			}
 		};	//	/bind_buttons
 
@@ -2741,6 +2775,7 @@
 	};
 	$.fn.carouFredSel.configs = {
 		'debug'			: false,
+		'onWindowResize': 'throttle',
 		'events'		: {
 			'prefix'		: '',
 			'namespace'		: 'cfs'
@@ -3592,14 +3627,14 @@
 		var visb = o.items.visible,
 			newS = o.items[o.d['width']],
 			seco = o[o.d['height']],
-			secp = is_percentage(seco);
+			secp = is_percentage(seco),
+			nw = newS - ms_getPaddingBorderMargin($(all[0]), o, 'Width'); // GEDAS - IMPROVEMENT - MOVED FROM EACH LOOP TO COUNT JUST FIRST ELEMENT DIMENSIONS
 
 		all.each(function() {
-			var $t = $(this),
-				nw = newS - ms_getPaddingBorderMargin($t, o, 'Width');
+			var $t = $(this);
 
 			$t[o.d['width']](nw);
-			if (secp)
+			if (secp && !(o.direction == 'up' || o.direction == 'down')) // GEDAS - FIX - FOR VERTICAL CAROUSEL
 			{
 				$t[o.d['height']](ms_getPercentage(nw, seco));
 			}
