@@ -10,6 +10,29 @@
  */
 (function () {
 
+	if ($.fn.getViewport) {
+		return;
+	}
+
+	$.fn.getViewport = function () { // $(window).height() is returning incorrect values
+		var viewPortWidth = window.innerWidth
+				|| document.documentElement.clientWidth
+				|| document.getElementsByTagName('body')[0].clientWidth,
+
+			viewPortHeight = window.innerHeight
+				|| document.documentElement.clientHeight
+				|| document.getElementsByTagName('body')[0].clientHeight;
+
+		return {
+			"width": viewPortWidth,
+			"height": viewPortHeight
+		};
+	}
+
+})();
+
+(function () {
+
 	if ($.fn.dibsmodal) {
 		return;
 	}
