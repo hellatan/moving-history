@@ -1,3 +1,6 @@
+/*!
+ * jquery.simpler-modal.js by Dale
+ */
 /**
  * Created with JetBrains PhpStorm.
  * User: daletan
@@ -13,7 +16,7 @@
 
 	$.fn.dibsModal = function (options) {
 		return new Modal(options);
-	}
+	};
 
 	function Modal(options) {
 
