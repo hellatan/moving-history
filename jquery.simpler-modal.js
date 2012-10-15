@@ -127,7 +127,7 @@
 		this.close = function (e) {
 			e.preventDefault();
 			$container.hide();
-			is_open = true;
+			is_open = false;
 			return false;
 		};
 
