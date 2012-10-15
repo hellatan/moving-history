@@ -18,7 +18,7 @@
 		return new Modal(options);
 	};
 
-	function Modal(options) {
+	function Modal(opts) {
 
 		var d = document,
 			is_open = false,
@@ -26,12 +26,22 @@
 			$body = $('body'),
 			$container, $modalContent, $modalInnerContent, $modalClose, $modalBg,
 			storage = {}, // used to keep track of modal content
+			options = $.extend(true, {
+				"modal_ids": {
+					"modal": "modalOverlay",
+					"content": "modalOverlay-content",
+					"innerContent": "modalOverlay-inner-content",
+					"close": "modalOverlay-close",
+					"bg": "modalOverlay-bg"
+				}
+			}, opts),
 			create_methods = {
 				modal: function () {
-					var $modal = $body.find('#modalOverlay');
+					var id = options.modal_ids.modal
+						$modal = $body.find('#' + id);
 					if (!$modal.length) {
 						var $div = $(d.createElement('div'))
-							.attr('id', 'modalOverlay')
+							.attr('id', id)
 							.addClass('modal');
 						$body.append($div);
 						$modal = $div;
@@ -40,26 +50,29 @@
 					return this;
 				},
 				modal_content: function () {
-					$modalContent = $container.find('#modalOverlay-content');
+					var content_id = options.modal_ids.content,
+						inner_content_id = options.modal_ids.innerContent,
+						close_id = options.modal_ids.close;
+					$modalContent = $container.find('#' + content_id);
 					if (!$modalContent.length) {
 						var $div = $(d.createElement('div'))
-							.attr('id', 'modalOverlay-content')
+							.attr('id', content_id)
 							.addClass('modal-content');
 						$modalContent = $div;
 						$container.append($div);
 					}
-					$modalInnerContent = $modalContent.find('#modalOverlay-inner-content');
+					$modalInnerContent = $modalContent.find('#' + inner_content_id);
 					if (!$modalInnerContent.length) {
 						var $inner = $(d.createElement('div'))
-							.attr('id', 'modalOverlay-inner-content')
+							.attr('id', inner_content_id)
 							.addClass('modal-inner-content');
 						$modalInnerContent = $inner;
 						$modalContent.append($inner);
 					}
-					$modalClose = $modalContent.find('#modalOverlay-close');
+					$modalClose = $modalContent.find('#' + close_id);
 					if (!$modalClose.length) {
 						var $close = $(d.createElement('div'))
-								.attr('id', 'modalOverlay-close')
+								.attr('id', close_id)
 								.addClass('modal-close'),
 							$close_link = $(d.createElement('a'))
 								.attr({
@@ -91,15 +104,16 @@
 					};
 				},
 				modal_bg: function () {
-					$modalBg = $container.find('#modalOverlay-bg');
+					var bg_id = options.modal_ids.bg;
+					$modalBg = $container.find('#' + bg_id);
 					if (!$modalBg.length) {
 						var $div = $(d.createElement('div'))
-							.attr('id', 'modalOverlay-bg')
+							.attr('id', bg_id)
 							.addClass('modal-bg');
 						$modalBg = $div;
 						$container.append($div);
 					}
-					$body.on('click', $modalBg, function (e) {
+					$modalBg.bind('click', function (e) {
 						e.preventDefault();
 						api.close(e);
 					});
@@ -155,7 +169,7 @@
 			},
 			keyup: function (e) { // use keyCode for x-browser
 				if (!is_open) {
-					return false;
+					return;
 				}
 				if (e.keyCode === 27) { // escape
 					api.close(e);
