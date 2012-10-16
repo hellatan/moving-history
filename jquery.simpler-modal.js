@@ -1,3 +1,6 @@
+/*!
+ * jquery.simpler-modal.js by Dale
+ */
 /**
  * Created with JetBrains PhpStorm.
  * User: daletan
