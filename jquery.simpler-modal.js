@@ -115,7 +115,7 @@
 					var $icon = $(d.createElement('span'))
 							.attr({
 								'aria-hidden': 'true',
-								'data-icon': 'x'
+								'data-icon': '9'
 							})
 							.addClass('icon-only is-lowercase'),
 						$screen = $(d.createElement('span'))
