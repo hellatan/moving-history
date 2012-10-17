@@ -29,13 +29,11 @@
  */
 (function ($) {
     $.fn.simpleAccordionList = function (settings) {
-
-	    var options = $.extend(true,
-		    {},
-		    settings || {}
-	    );
-
-        var allItems = $('.accordion-list-items');
+        var defaults = {
+                defaultTrigger: null
+            },
+            options = $.extend(true, defaults, settings),
+            allItems = $('.accordion-list-items');
 
         this.find('.master-accordion-list-trigger').click(function () {
             var master = $(this).parents('.master');
@@ -59,10 +57,20 @@
 
             if (items.is(':hidden')) {
                 myHead.addClass('is-expanded');
-                items.slideDown();
+                if (options.defaultTrigger) {
+                    // no animation on the initial open
+                    items.show();
+                    options.defaultTrigger = null;
+                } else {
+                    items.slideDown();
+                }
             }
             return false;
         });
+
+        if (options.defaultTrigger) {
+            $(options.defaultTrigger).click();
+        }
 
         return this;
     };
