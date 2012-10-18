@@ -59,8 +59,8 @@
                 myHead.addClass('is-expanded');
                 if (options.defaultTrigger) {
                     // no animation on the initial open
-                    items.show();
                     options.defaultTrigger = null;
+                    items.show();
                 } else {
                     items.slideDown();
                 }
