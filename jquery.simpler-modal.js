@@ -167,6 +167,14 @@
 			is_open = false;
 			return false;
 		};
+		
+		this.check = function(name) {
+			if (storage[name]) {
+				return true;
+			} else {
+				return false;
+			}
+		};
 
 		function init() {
 			create_methods.modal().modal_content().modal_bg();
