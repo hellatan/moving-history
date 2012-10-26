@@ -188,6 +188,7 @@
 				win_h = $.fn.getViewport().height,
 				top = (win_h - h) / 2;
 			$modalContent.css('top', top);
+			$container.css('position', 'fixed');
 		}
 
 		var key_codes = {
