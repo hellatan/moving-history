@@ -149,18 +149,18 @@
 			};
 
 		this.update = function (name, $content) {
+			c_name = name;					// set current modal name
 			if (!storage[name]) {
 				storage[name] = !$content ? storage[name] : $content;
 			} else if (name && $content) {	// update the stored object with new $content
 				storage[name] = $content;
 			}
 			$modalInnerContent.html(storage[name]);
-			c_name = name;					// set current modal name
 			return this;
 		};
 
 		this.show = function () {
-			$container.show();
+			$container.addClass(c_name).show();
 			is_open = true;
 			center();
 			return this;
@@ -168,8 +168,7 @@
 
 		this.close = function (e) {
 			e.preventDefault();
-			$container.hide();
-			console.log(call_backs.onClose);
+			$container.hide().removeClass(c_name);
 			if (call_backs.onClose[c_name]) {
 				call_backs.onClose[c_name]();
 			}
