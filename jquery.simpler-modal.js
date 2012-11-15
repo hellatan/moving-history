@@ -48,7 +48,11 @@
 			api = this,
 			$body = $('body'),
 			$container, $modalContent, $modalInnerContent, $modalClose, $modalBg,
-			storage = {}, // used to keep track of modal content
+			storage = {},		// used to keep track of modal content
+			c_name = '',			// current modal name
+			call_backs = {		// callback functions
+				'onClose': {}
+			}
 			options = $.extend(true, {
 				"modal_ids": {
 					"modal": "modalOverlay",
@@ -146,11 +150,12 @@
 
 		this.update = function (name, $content) {
 			if (!storage[name]) {
-				storage[name] = !$content ? name : $content;
-			} else if (name && $content) { // update the stored object with new $content
+				storage[name] = !$content ? storage[name] : $content;
+			} else if (name && $content) {	// update the stored object with new $content
 				storage[name] = $content;
 			}
 			$modalInnerContent.html(storage[name]);
+			c_name = name;					// set current modal name
 			return this;
 		};
 
@@ -164,9 +169,18 @@
 		this.close = function (e) {
 			e.preventDefault();
 			$container.hide();
+			console.log(call_backs.onClose);
+			if (call_backs.onClose[c_name]) {
+				call_backs.onClose[c_name]();
+			}
 			is_open = false;
+			c_name = '';
 			return false;
 		};
+		
+		this.onClose = function(name, callback) {
+			call_backs.onClose[name] = callback;
+		}
 		
 		this.check = function(name) {
 			if (storage[name]) {
