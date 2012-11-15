@@ -60,7 +60,7 @@
 			}, opts),
 			create_methods = {
 				modal: function () {
-					var id = options.modal_ids.modal
+					var id = options.modal_ids.modal,
 						$modal = $body.find('#' + id);
 					if (!$modal.length) {
 						var $div = $(d.createElement('div'))
