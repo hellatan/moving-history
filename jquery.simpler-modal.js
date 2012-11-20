@@ -160,7 +160,8 @@
 		};
 
 		this.show = function () {
-			$body.addClass('overflow-h');
+			$body.addClass('modal-open');
+//			$('#header').addClass('modal-open');
 			$container.addClass(c_name).show();
 			is_open = true;
 			center();
@@ -169,7 +170,8 @@
 
 		this.close = function (e) {
 			e.preventDefault();
-			$body.removeClass('overflow-h');
+			$body.removeClass('modal-open');
+//			$('#header').removeClass('modal-open');
 			$container.hide().removeClass(c_name);
 			if (call_backs.onClose[c_name]) {
 				call_backs.onClose[c_name]();
