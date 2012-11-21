@@ -142,7 +142,8 @@
 					}
 					$modalBg.bind('click', function (e) {
 						e.preventDefault();
-						api.close(e);
+						$.publish('modal:close', e);
+//						api.close(e);
 					});
 					return this;
 				}
@@ -196,6 +197,9 @@
 		function init() {
 			create_methods.modal().modal_content().modal_bg();
 			$container.on('click', '#modalOverlay-close-btn', function (e) {
+				$.publish('modal:close', e);
+			});
+			$.subscribe('modal:close', function (e) {
 				api.close(e);
 			});
 		};
@@ -221,7 +225,7 @@
 					return;
 				}
 				if (e.keyCode === 27) { // escape
-					api.close(e);
+					$.publish('modal:close', e);
 				}
 			}
 		});
