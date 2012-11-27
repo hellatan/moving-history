@@ -212,6 +212,8 @@
 			$container.css('position', 'fixed');
 		}
 
+		this.center = center;
+
 		var key_codes = {
 			"27": "escape"
 		};
