@@ -198,6 +198,7 @@
 			create_methods.modal().modal_content().modal_bg();
 			$container.on('click', '#modalOverlay-close-btn', function (e) {
 				$.publish('modal:close', e);
+				return false;
 			});
 			$.subscribe('modal:close', function (e) {
 				api.close(e);
