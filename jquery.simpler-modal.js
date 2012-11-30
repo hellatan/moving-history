@@ -163,10 +163,7 @@
 
 		this.show = function () {
 			// Prevent page scrolling
-			var pos = $window.scrollTop();
-			$window.on('scroll', function() {
-				$window.scrollTop(pos);
-			});
+			$window.on('mousewheel', function() { return false;});
 			
 			$container.addClass(c_name).show();
 			is_open = true;
@@ -177,7 +174,7 @@
 		this.close = function (e) {
 			e.preventDefault();
 			// Allow page scrolling
-			$window.off('scroll');
+			$window.off('mousewheel');
 			
 			$container.hide().removeClass(c_name);
 			if (call_backs.onClose[c_name]) {
@@ -225,7 +222,7 @@
 			"27": "escape"
 		};
 
-		$(window).bind({
+		$window.bind({
 			resize: function () {
 				center();
 			},
