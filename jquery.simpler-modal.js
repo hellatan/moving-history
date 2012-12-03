@@ -158,7 +158,7 @@
 				storage[name] = $content;
 			}
 			$modalInnerContent.html(storage[name]);
-			$.publish('modal:update', [name, $content]);
+			$.publish('modal:update', [api, $modalContent]);
 			return this;
 		};
 
@@ -169,6 +169,7 @@
 			$container.addClass(c_name).show();
 			is_open = true;
 			center();
+			$.publish('modal:show', [this, $modalContent]);
 			return this;
 		};
 
