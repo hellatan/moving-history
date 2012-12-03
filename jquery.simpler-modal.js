@@ -47,6 +47,7 @@
 			is_open = false,
 			api = this,
 			$body = $('body'),
+			$window = $(window),
 			$container, $modalContent, $modalInnerContent, $modalClose, $modalBg,
 			storage = {},		// used to keep track of modal content
 			c_name = '',			// current modal name
@@ -161,8 +162,9 @@
 		};
 
 		this.show = function () {
-			$body.addClass('modal-open');
-//			$('#header').addClass('modal-open');
+			// Prevent page scrolling
+			$window.on('mousewheel', function() { return false;});
+			
 			$container.addClass(c_name).show();
 			is_open = true;
 			center();
@@ -171,8 +173,9 @@
 
 		this.close = function (e) {
 			e.preventDefault();
-			$body.removeClass('modal-open');
-//			$('#header').removeClass('modal-open');
+			// Allow page scrolling
+			$window.off('mousewheel');
+			
 			$container.hide().removeClass(c_name);
 			if (call_backs.onClose[c_name]) {
 				call_backs.onClose[c_name]();
@@ -219,7 +222,7 @@
 			"27": "escape"
 		};
 
-		$(window).bind({
+		$window.bind({
 			resize: function () {
 				center();
 			},
