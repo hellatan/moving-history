@@ -169,7 +169,7 @@
 			$container.addClass(c_name).show();
 			is_open = true;
 			center();
-			$.publish('modal:show', [this, $modalContent]);
+			$.publish('modal:show', [api, $modalContent]);
 			return this;
 		};
 
