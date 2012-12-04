@@ -53,7 +53,7 @@
 			c_name = '',			// current modal name
 			call_backs = {		// callback functions
 				'onClose': {}
-			}
+			},
 			options = $.extend(true, {
 				"modal_ids": {
 					"modal": "modalOverlay",
@@ -158,6 +158,7 @@
 				storage[name] = $content;
 			}
 			$modalInnerContent.html(storage[name]);
+			$.publish('modal:update', [api, $modalContent]);
 			return this;
 		};
 
@@ -168,6 +169,7 @@
 			$container.addClass(c_name).show();
 			is_open = true;
 			center();
+			$.publish('modal:show', [api, $modalContent]);
 			return this;
 		};
 
