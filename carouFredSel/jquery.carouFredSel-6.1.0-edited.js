@@ -2190,8 +2190,8 @@
 					opts.items.width = opts.items.sizesConf.width;
 					opts.items.height = opts.items.sizesConf.height;
 					opts = in_getResponsiveValues(opts, a_itm, avail_primary);
-					vI = opts.items.visible;
 					sz_setResponsiveSizes(opts, a_itm);
+                    vI = opts.items.visible;
 				}
 				else if (opts.items.visibleConf.variable)
 				{
@@ -3628,9 +3628,23 @@
 			newS = o.items[o.d['width']],
 			seco = o[o.d['height']],
 			secp = is_percentage(seco),
-			nw = newS - ms_getPaddingBorderMargin($(all[0]), o, 'Width'); // GEDAS - IMPROVEMENT - MOVED FROM EACH LOOP TO COUNT JUST FIRST ELEMENT DIMENSIONS
+			nw = newS,
+            wrWidth = ms_getTotalSize(all, o, 'width', true),
+            padd = ms_getPaddingBorderMargin($(all[0]), o, 'Width'); // GEDAS - IMPROVEMENT - MOVED FROM EACH LOOP TO COUNT JUST FIRST ELEMENT DIMENSIONS
 
-		all.each(function() {
+        // JAMES - added option for specifying the minimum width on the carousel items
+        // if the responsive adjustments cause the item width to be below the minimum
+        // width, then this will set the number of visible items to 1 and will make
+        // the item expand to fit the container so only one item is showing.
+        if (o.showOnlyOneWidth && wrWidth < o.showOnlyOneWidth) {
+            nw = wrWidth;
+            o.items[o.d['width']] = nw;
+            o.items.visible = 1;
+        }
+
+        nw = nw - padd; // remove padding from width
+
+        all.each(function() {
 			var $t = $(this);
 
 			$t[o.d['width']](nw);
