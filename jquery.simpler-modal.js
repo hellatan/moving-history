@@ -42,16 +42,15 @@
 	};
 
 	function Modal(opts) {
-
 		var d = document,
 			is_open = false,
 			api = this,
 			$body = $('body'),
 			$window = $(window),
 			$container, $modalContent, $modalInnerContent, $modalClose, $modalBg,
-			storage = {},		// used to keep track of modal content
-			c_name = '',			// current modal name
-			call_backs = {		// callback functions
+			storage = {},					// used to keep track of modal content
+			c_name = '',					// current modal name
+			call_backs = {					// callback functions
 				'onClose': {}
 			},
 			options = $.extend(true, {
@@ -164,7 +163,7 @@
 
 		this.show = function () {
 			// Prevent page scrolling
-			$window.on('mousewheel', function() { return false;});
+			$body.addClass('modal-open');
 			
 			$container.addClass(c_name).show();
 			is_open = true;
@@ -176,7 +175,7 @@
 		this.close = function (e) {
 			e.preventDefault();
 			// Allow page scrolling
-			$window.off('mousewheel');
+			$body.removeClass('modal-open');
 			
 			$container.hide().removeClass(c_name);
 			if (call_backs.onClose[c_name]) {
@@ -198,7 +197,7 @@
 				return false;
 			}
 		};
-
+		
 		function init() {
 			create_methods.modal().modal_content().modal_bg();
 			$container.on('click', '#modalOverlay-close-btn', function (e) {
@@ -216,6 +215,18 @@
 				top = (win_h - h) / 2;
 			$modalContent.css('top', top);
 			$container.css('position', 'fixed');
+		}
+
+		function checkScrollBar() {
+			var outer = $('<div class="modal-measure-scrollbar" />').prependTo($body),
+	            inner = $('<div class="inner" />').appendTo(outer),
+			    width = outer.width() - inner.width();
+			outer.remove();
+			
+			if (width > 0) {
+				var css = '.modal-open #header .header-wrap{max-width: '+($('#page').width()+width)+'px;}.modal-open, .modal-open #header .header-search-box,.modal-open #header #toggleNavSearch{margin-right: '+width+'px;}';
+				$('head').append('<style>'+css+'</style>');
+			}
 		}
 
 		this.center = center;
@@ -238,6 +249,7 @@
 			}
 		});
 
+		checkScrollBar();
 		init();
 
 		return this;
