@@ -8,6 +8,8 @@
  * Time: 10:54 AM
  * To change this template use File | Settings | File Templates.
  */
+/** @namespace $.fn.dibsmodal */
+
 (function () {
 
 	if ($.fn.getViewport) {
@@ -33,7 +35,7 @@
 
 (function () {
 
-	if ($.fn.dibsmodal) {
+    if ($.fn.dibsmodal) {
 		return;
 	}
 
@@ -188,14 +190,10 @@
 		
 		this.onClose = function(name, callback) {
 			call_backs.onClose[name] = callback;
-		}
+		};
 		
 		this.check = function(name) {
-			if (storage[name]) {
-				return true;
-			} else {
-				return false;
-			}
+			return storage[name];
 		};
 		
 		function init() {
@@ -207,7 +205,7 @@
 			$.subscribe('modal:close', function (e) {
 				api.close(e);
 			});
-		};
+		}
 
 		function center() {
 			var h = $modalContent.height(),
@@ -230,10 +228,6 @@
 		}
 
 		this.center = center;
-
-		var key_codes = {
-			"27": "escape"
-		};
 
 		$window.bind({
 			resize: function () {
