@@ -62,6 +62,9 @@
 					"innerContent": "modalOverlay-inner-content",
 					"close": "modalOverlay-close",
 					"bg": "modalOverlay-bg"
+				},
+				toggle : {
+				    mayClose : true
 				}
 			}, opts),
 			create_methods = {
@@ -114,6 +117,9 @@
 						$close_link.append(close_btn.icon, close_btn.screen);
 						$close.html($close_link);
 						$modalContent.prepend($close);
+					}
+					if (!options.toggle.mayClose) {
+					    $modalClose.hide();
 					}
 					return this;
 				},
@@ -187,7 +193,19 @@
 			c_name = '';
 			return false;
 		};
-		
+
+        this.enableClose = function () {
+            options.toggle.mayClose = true;
+            $modalClose.show();
+            return this;
+        }
+
+        this.disableClose = function () {
+            $modalClose.hide();
+            options.toggle.mayClose = false;
+            return this;
+        }
+
 		this.onClose = function(name, callback) {
 			call_backs.onClose[name] = callback;
 		};
@@ -203,6 +221,10 @@
 				return false;
 			});
 			$.subscribe('modal:close', function (e) {
+			    if (!options.toggle.mayClose) {
+			        $.publish('modal:close:prevented', e);
+			        return;
+			    }
 				api.close(e);
 			});
 		}
