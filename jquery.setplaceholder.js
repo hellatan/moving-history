@@ -16,9 +16,10 @@ jQuery.fn.setPlaceholder = function(){
 		,	testPlaceholder = document.createElement(el.nodeName)
 		;
 
+
 		if(!('placeholder' in testPlaceholder)){
 			t.val(title);
-			t.bind('focusin focusout',function(e){
+			t.on('focusin focusout',function(e){
 				if(e.type === 'focusin'){
 					if(t.val() === title){
 						t.val('');
