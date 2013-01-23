@@ -245,7 +245,7 @@
 			
 			if (width > 0) {
 				var css = '.modal-open #header .header-wrap{max-width: '+($('#page').width()+width)+'px;}.modal-open, .modal-open #header .header-search-box,.modal-open #header #toggleNavSearch{margin-right: '+width+'px;}';
-				$('head').append('<style>'+css+'</style>');
+				$('head').append('<style type="text/css">'+css+'</style>');
 			}
 		}
 
