@@ -36,7 +36,10 @@
             allItems = $('.accordion-list-items');
 
         this.find('.master-accordion-list-trigger').click(function () {
-            var master = $(this).parents('.master');
+            var master = $(this).parents('.master'),
+                head = $(this).parent('.accordion-list-head');
+
+            head.toggleClass('master-expanded');
 
             if (master.length && master.is(':visible')) {
                 master.find('.accordion-list').slideToggle();
