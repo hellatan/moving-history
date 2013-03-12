@@ -211,8 +211,9 @@
 			var h = $modalContent.height(),
 				win_h = $.fn.getViewport().height,
 				top = (win_h - h) / 2;
-            if(top < 0)
+            if(top < 0){
                 top = 0;
+            }
 			$modalContent.css('top', top);
 			$container.css('position', 'fixed');
 		}
