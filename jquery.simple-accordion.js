@@ -30,10 +30,19 @@
 (function ($) {
     $.fn.simpleAccordionList = function (settings) {
         var defaults = {
-                defaultTrigger: null
+                defaultTrigger: null,
+                allowAllOpened: false
             },
             options = $.extend(true, defaults, settings),
             allItems = $('.accordion-list-items');
+
+
+        this.fireEvent = function (event) {
+            if ($.publish) { // based on the simple pub/sub found in core/dibs.js
+                // only want arguments after the `event` argument
+                $.publish(event, [].slice.call(arguments, 1));
+            }
+        };
 
         this.find('.master-accordion-list-trigger').click(function () {
             var master = $(this).parents('.master'),
@@ -52,7 +61,9 @@
                 myHead = $(this).parent('.accordion-list-head'),
                 items = $(this).siblings('.accordion-list-items');
 
-            allItems.slideUp();
+            if (!options.allowAllOpened) {
+                allItems.slideUp();
+            }
 
             heads
                 .removeClass('is-expanded')
@@ -74,6 +85,8 @@
         if (options.defaultTrigger) {
             $(options.defaultTrigger).click();
         }
+
+
 
         return this;
     };
