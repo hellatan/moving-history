@@ -152,12 +152,10 @@
                         // fire this state if on mobile
                         // otherwise animation looks crappy
                         // no animation on the initial open
-                        console.log('showing');
-                        $items.show(function () {
-                            console.log("done showing")
+                        $items.css({
+                            'display': 'block'
                         });
                     } else {
-                        console.log('sliding down');
                         $items.slideDown(function () {
                             console.log("done sliding down")
                         });
@@ -167,12 +165,10 @@
                         // fire this state if on mobile
                         // otherwise animation looks crappy
                         // no animation on the initial open
-                        console.log('hididng');
-                        $items.hide(function () {
-                            console.log('donee hiding')
+                        $items.css({
+                            'display': 'none'
                         });
                     } else {
-                        console.log('sliding up');
                         $items.slideUp(function () {
                             console.log("done slidign up");
                         });
