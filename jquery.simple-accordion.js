@@ -88,6 +88,10 @@
                     listItems: 'accordion-list-items'
                 }
             },
+            states = {
+                closed: 'is-collapsed',
+                opened: 'is-opened'
+            },
             options,
             $allItems;
 
@@ -119,29 +123,27 @@
                 console.log('hi', $items);
 
                 if (!options.allowAllOpened) {
-//                    $allItems
-//                        .removeClass('is-opened')
-//                        .addClass('is-closed')
-//                        .slideUp();
+//                    $allItems.slideUp();
+                    $this.siblings().find('.accordion-list-items').slideUp();
                 }
 
-                if ($items.hasClass('is-closed') || (!$items.hasClass('is-closed') && !$items.hasClass('is-opened'))) {
+                if ($items.hasClass(states.closed) || (!$items.hasClass(states.closed) && !$items.hasClass(states.opened))) {
                     console.log("opening")
-                    $this.addClass('is-expanded');
+                    $this.addClass(states.opened);
                     $items
                         .slideDown(function () {
                             $items
-                                .removeClass('is-closed')
-                                .addClass('is-opened');
+                                .removeClass(states.closed)
+                                .addClass(states.opened);
                         });
                 } else {
                     console.log("closing")
-                    $this.removeClass('is-expanded');
+                    $this.removeClass(states.opened);
                     $items
                         .slideUp(function () {
                             $items
-                                .removeClass('is-opened')
-                                .addClass('is-closed');
+                                .removeClass(states.opened)
+                                .addClass(states.closed);
                         });
                 }
                 return false;
