@@ -85,54 +85,182 @@
         }
     };
 
-    $.fn.simpleAccordionList = function(settings) {
+    $.fn.nestedAccordionList = function(settings) {
         var api = this,
             defaults = {
                 allowAllOpened: false,
                 allowAnimation: false,
                 classes: {
-                    masterTrigger: 'master',
+                    master: 'master',
+                    masterTrigger: 'master-accordion-list-trigger',
+                    masterExpanded: 'master-expanded',
                     list: 'accordion-list',
                     trigger: 'accordion-list-trigger',
                     listItems: 'accordion-list-items'
                 }
             },
             states = {
-                closed: 'is-collapsed',
-                opened: 'is-expanded'
+                classes: {
+                    closed: 'is-collapsed',
+                    opened: 'is-expanded'
+                }
             },
             currentlyOpen = null,
+            $lastMasterOpened = [], // leave as an array since jQuery returns empty arrays when it doesn't find a matching DOM element
             options,
+            $allMasters,
             $allItems;
 
         function init(settings) {
             options = $.extend(true, defaults, settings);
             console.log(options);
             options = utils.createClassStrings(options, ["classes", "stateClasses"]);
+            states = utils.createClassStrings(states, ["classes"]);
             $allItems = $(options._classes.listItems);
+            $allMasters = $(options._classes.master);
+            console.log('all masters: ', $allMasters);
             api.setup();
         }
 
         this.setup = function () {
             var $trigger = $(options._classes.trigger),
-                $par = $trigger.closest(options._classes.list);
-
-            api.find(options._classes.masterTrigger).click(function () {
+                $par = $trigger.closest(options._classes.list),
+                orderClass = '.accordion-list-items > .accordion-list-wrapper',
+                $heightWrapper;
+console.log('setting up...')
+            api.find(options._classes.masterTrigger).click(function (e) {
+                console.log('master trigger: ', e)
                 var $this = $(this),
-                    master = $this.parents(options._classes.master),
-                    head = $this.parent(options._classes.listHead);
+                    $master = $this.parents(options._classes.master),
+                    $head = $this.parent(options._classes.listHead);
 
-                head.toggleClass('master-expanded');
+                if (!options.allowAllOpened) {
+                    console.log("------------ master not all allowed opened")
+                    if (!options.allowAnimation) {
+                        console.log('no anaimation: ', $allMasters)
 
-                if (master.length && master.is(':visible')) {
-                    master.find(options._classes.accordionList).slideToggle();
+                        $allMasters
+                            .removeClass('master-expanded')
+                            .find('.accordion-list-items')
+                            .removeClass('is-expanded')
+                            .addClass('is-collapsed')
+                            .height(0);
+                    } else {
+                        $allMasters
+                            .find(orderClass)
+                            .slideToggle(function () {
+                                var isExpanded = $master.hasClass('master-expanded'),
+                                    removeClass = isExpanded ? states.classes.opened : states.classes.closed,
+                                    addClass = isExpanded ? states.classes.closed : states.classes.opened;
+                                if (!isExpanded) {
+                                    $master.addClass('master-expanded')
+                                } else {
+                                    $master.removeClass('master-expanded')
+                                }
+                                $this
+                                    .removeClass(removeClass)
+                                    .addClass(addClass);
+                            });
+                    }
+                    if ($lastMasterOpened.length) {
+                        console.log('last msater no anime: ', $lastMasterOpened)
+                        $lastMasterOpened
+                            .find(states._classes.opened)
+                            .removeClass(states.classes.opened)
+                            .addClass(states.classes.closed);
+                    }
                 }
+
+                console.log('last master: ', $lastMasterOpened);
+
+                console.log('$this: ', this);
+//
+//                if ($this.hasClass(states.classes.closed)) {
+//                    $this.removeClass(states.classes.closed).addClass(states.classes.opened);
+//                    console.log("higging this: ", $this);
+//                } else {
+//                    $this.removeClass(states.classes.opened).addClass(states.classes.closed);
+//
+//                    return false;
+//
+//                }
+
+                if ($lastMasterOpened.length) {
+                    if ($lastMasterOpened.find(this).length) {
+                        $lastMasterOpened = [];
+                        return false;
+                    }
+                } else {
+                    $master.find('> .is-collapsed').removeClass('is-collapsed').addClass('is-expanded');
+                }
+
+
+                console.log("no falsy");
+
+
+                if ($master.length) {
+                    if (!options.allowAnimation) {
+
+                        $heightWrapper = $master.find(orderClass);
+
+                        console.log($heightWrapper, $heightWrapper.outerHeight())
+                        if ($heightWrapper.length) {
+                            $master.find(orderClass).height($heightWrapper.outerHeight());
+                        }
+
+                        if (!$master.hasClass('master-expanded')) {
+                            console.log('master expanding')
+                            $master
+                                .addClass('master-expanded')
+                                .find('> .accordion-list-items')
+                                .removeClass('is-collapsed')
+                                .addClass('is-expanded animate')
+                                .height($heightWrapper.outerHeight())
+                                .find(orderClass)
+                                .removeClass(states.classes.closed)
+                                .addClass(states.classes.opened + ' animate');
+                            console.log($master.children('.accordion-list-items').find(orderClass));
+                        } else {
+                            console.log('master closing')
+                            $master
+                                .removeClass('master-expanded')
+                                .find('> .accordion-list-items')
+                                .removeClass('is-expanded')
+                                .addClass('is-collapsed')
+                                .height(0)
+                                .find(orderClass)
+                                .removeClass(states.classes.opened)
+                                .addClass(states.classes.closed);
+                        }
+                    } else {
+                        $master
+                            .find(orderClass)
+                            .slideToggle(function () {
+                                var isExpanded = $master.hasClass('master-expanded'),
+                                    removeClass = isExpanded ? states.classes.opened : states.classes.closed,
+                                    addClass = isExpanded ? states.classes.closed : states.classes.opened;
+                                if (!isExpanded) {
+                                    $master.addClass('master-expanded')
+                                } else {
+                                    $master.removeClass('master-expanded')
+                                }
+                                $this
+                                    .removeClass(removeClass)
+                                    .addClass(addClass);
+                            });
+                    }
+
+                    $lastMasterOpened = $master;
+
+                }
+
+                console.log("end of master")
+
                 return false;
             });
 
-            console.log(states);
-
             $par.on('click', $trigger, function (e) {
+                console.log("clicking $par: ", $par);
                 e.preventDefault();
                 var $this = $(this),
                     $items = $this.find('.accordion-list-items');
@@ -143,37 +271,44 @@
                     console.log('NOOOOOO')
                 }
 
-
-
                 if (!options.allowAllOpened) {
                     console.log("------------ not all allowed opened")
-                    $allItems
-//                        .removeClass(states.opened)
-//                        .addClass(states.closed)
+                    if (!options.allowAnimation) {
+
+                    } else {
+                        console.log('all tiems sliding up animation allowed')
+                        $allItems.each(function () {
+
+//                        .removeClass(states.classes.opened)
+//                        .addClass(states.classes.closed)
 //                        .find('.accordion-list-items')
-                        .slideUp(
-                            function () {
-                                var $p = $(this).parents(states.opened);
-
-                                console.log($(this));
-
-                                $p
-                                    .removeClass(states.opened)
-                                    .addClass(states.closed);
+                            if ($(this).parent('.is-expanded').length) {
+                               $(this).slideUp(
+                                function () {
+                                    $(this).parent(states._classes.opened)
+                                        .removeClass(states.classes.opened)
+                                        .addClass(states.classes.closed);
+                                }
+                            );
                             }
-                        );
+
+                        })
+
+                    }
+
                 }
 
 
                 // NEED TO GET FIRST CLICK TO OPEN
 console.log('$this: ', $this);
 
-                if ($this.hasClass(states.closed)) { // || (!$items.hasClass(states.closed) && !$items.hasClass(states.opened))) {
+
+                if ($this.hasClass(states.classes.closed)) { // || (!$items.hasClass(states.classes.closed) && !$items.hasClass(states.classes.classes.opened))) {
                     if (!options.allowAnimation) {
-                        console.log("no nimation opening")
+                        console.log("no nimation opening", $this);
                         $this
-                            .removeClass(states.closed)
-                            .addClass(states.opened);
+                            .removeClass(states.classes.closed)
+                            .addClass(states.classes.opened);
 
                     } else {
                         console.log("opening")
@@ -181,8 +316,8 @@ console.log('$this: ', $this);
                             .find('> .accordion-list-items')
                             .slideDown(function () {
                                 $this
-                                    .removeClass(states.closed)
-                                    .addClass(states.opened);
+                                    .removeClass(states.classes.closed)
+                                    .addClass(states.classes.opened);
                             });
                     }
 
@@ -192,8 +327,8 @@ console.log('$this: ', $this);
                         .find('> .accordion-list-items')
                         .slideUp(function () {
                             $this
-                                .removeClass(states.opened)
-                                .addClass(states.closed);
+                                .removeClass(states.classes.opened)
+                                .addClass(states.classes.closed);
                         });
                 }
                 return false;
