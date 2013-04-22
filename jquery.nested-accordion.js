@@ -124,7 +124,7 @@
             var $trigger = $(options._classes.trigger),
                 $par = $trigger.closest(options._classes.list),
                 orderClass = '.accordion-list-items > .accordion-list-wrapper',
-                $master,
+                $master = [],
                 $heightWrapper;
 
             api.find(options._classes.masterTrigger).click(function (e) {
@@ -225,6 +225,7 @@
                                 $master.removeClass('master-expanded')
                             }
                             $this
+                                .removeClass('animate')
                                 .removeClass(removeClass)
                                 .addClass(addClass);
                         });
@@ -238,6 +239,11 @@
             $par.on('click', $trigger, function (e) {
                 e.preventDefault();
                 var $this = $(this);
+
+                if (!$master.length) {
+                    $master = $this.parents(options._classes.master);
+                }
+
 
                 if (!options.allowAllOpened) { // close others if only one accordion is allowed to be opened at a time
                     if (!options.allowAnimation) { // covers phone/tablet
@@ -253,19 +259,17 @@
                         // need to work on desktop
                         $allItems.each(function () {
                             if ($(this).parent('.is-expanded').length) {
-                               $(this).slideUp(
-                                function () {
-                                    $(this).parent(states._classes.opened)
-                                        .removeClass(states.classes.opened)
-                                        .addClass(states.classes.closed);
-                                }
-                            );
+                                $(this).slideUp(
+                                    function () {
+                                        $(this).parent(states._classes.opened)
+                                            .removeClass('animate')
+                                            .removeClass(states.classes.opened)
+                                            .addClass(states.classes.closed);
+                                    }
+                                );
                             }
-
-                        })
-
+                        });
                     }
-
                 }
 
                 if (!options.allowAnimation) { // phone/tablet
@@ -294,6 +298,7 @@
                         $master.find('> .accordion-list-items').height(initHeight);
                     }
                 } else { // desktop
+                    $master.find('> .accordion-list-items').height('auto');
                     if ($this.hasClass(states.classes.closed)) {
                         // || (!$items.hasClass(states.classes.closed) && !$items.hasClass(states.classes.classes.opened))) {
                         console.log("openeing")
@@ -301,6 +306,9 @@
                             .find('> .accordion-list-items')
                             .slideDown(function () {
                                 $this
+                                    .removeClass(states.classes.closed)
+                                    .addClass(states.classes.opened)
+                                    .find('> .accordion-list-items')
                                     .removeClass(states.classes.closed)
                                     .addClass(states.classes.opened);
                             });
@@ -310,6 +318,9 @@
                             .find('> .accordion-list-items')
                             .slideUp(function () {
                                 $this
+                                    .removeClass(states.classes.opened)
+                                    .addClass(states.classes.closed)
+                                    .find('> .accordion-list-items')
                                     .removeClass(states.classes.opened)
                                     .addClass(states.classes.closed);
                             });
