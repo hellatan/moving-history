@@ -28,6 +28,7 @@
  *      $('.my-class').simpleAccordionList()
  */
 (function ($) {
+    "use strict";
     $.fn.simpleAccordionList = function (settings) {
         var api = this,
             defaults = {
