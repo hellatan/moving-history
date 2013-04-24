@@ -39,7 +39,9 @@
                     triggerTag: 'span' // this case is when a link is inside the accordion trigger
                 },
                 storage: {
-                    prefix: 'accordion-list-status'
+                    prefix: 'accordion-list-status',
+                    // override this with dibs.utils.localStorage
+                    method: window.localStorage || $.cookie
                 }
             },
             prevItems = {
@@ -65,23 +67,30 @@
                 storage[id] = {};
             }
 
-            /**
-             *
-             *  NEED TO FIGURE OUT HOW TO NOT RELY ON LOCALSTORAGE STUFF HERE
-             *
-             */
-
-            if (dibs.findNamespaceValue('dibs.utils.localStorage')) {
-                var tmp = dibs.utils.localStorage.getItem(id);
+            if (options.storage.method.getItem) {
+                var tmp = options.storage.method.getItem(id);
                 if (!tmp) {
-                    dibs.utils.localStorage.setItem(id, status);
+                    options.storage.method.setItem(id, status);
                 } else {
                     if (tmp !== status) {
-                        dibs.utils.localStorage.setItem(id, status);
+                        options.storage.method.setItem(id, status);
                     }
                     status = tmp;
                 }
+            } else {
+                if (options.storage.method) { // just make sure it exists and should be the $.cookie method
+                    var tmp = options.storage.method(id);
+                    if (!tmp) {
+                        options.storage.method(id, status);
+                    } else {
+                        if (tmp !== status) {
+                            options.storage.method(id, status);
+                        }
+                        status = tmp;
+                    }
+                }
             }
+
 
             storage[id].status = status;
 
