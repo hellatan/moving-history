@@ -31,6 +31,7 @@
     $.fn.simpleAccordionList = function (settings) {
         var api = this,
             defaults = {
+                path: null,
                 defaultTrigger: null,
                 allAllowedOpen: false,
                 elements: {
@@ -46,8 +47,7 @@
             },
             storage = {},
             options = $.extend(true, defaults, settings),
-            allItems = $('.mobile-accordion-list-items');
-
+            $allItems = $('.mobile-accordion-list-items');
 
         this.each(function (i, a) {
             var $this = $(this),
@@ -87,18 +87,20 @@
         });
 
         this.find('.master-mobile-accordion-list-trigger').click(function () {
-            var master = $(this).parents('.master'),
+            var $master = $(this).parents('.master'),
                 head = $(this).parent('.mobile-accordion-list-head');
 
             head.toggleClass('master-expanded');
 
-            if (master.length) {
-                var $list = master.find('.mobile-accordion-list'),
+            if ($master.length) {
+                var $list = $master.find('.mobile-accordion-list'),
                     height = $list.children('.mobile-accordion-measuring-wrap').outerHeight(true),
                     isExpanded = $list.hasClass('is-expanded');
                 if (isExpanded) {
+                    $master.removeClass('is-expanded').addClass('is-collapsed');
                     $list.removeClass('is-expanded').addClass('is-collapsed').height(0);
                 } else {
+                    $master.removeClass('is-collapsed').addClass('is-expanded');
                     $list.removeClass('is-collapsed').addClass('is-expanded').height(height);
                 }
             }
@@ -108,6 +110,7 @@
         this.find('.mobile-accordion-list-trigger').click(function (e) {
             var $this = $(this),
                 $heads = $('.mobile-accordion-list-head'),
+                $curMaster = $this.parents('.master'),
                 $curHead = $this.parent('.mobile-accordion-list-head'),
                 $items = $this.siblings('.mobile-accordion-list-items');
 
@@ -124,7 +127,7 @@
 
             if (!options.allAllowedOpen) {
                 // allItems.slideUp();
-                allItems.removeClass('is-expanded').addClass('is-collapsed');
+                $allItems.removeClass('is-expanded').addClass('is-collapsed');
                 $heads.each(function () {
                     if (prevItems.$heads.length && !prevItems.$heads.hasClass('is-expanded')) {
                         $(this).removeClass('is-expanded').addClass('is-collapsed');
@@ -136,11 +139,26 @@
                 $curHead.removeClass('is-collapsed').addClass('is-expanded');
                 console.log('height: ', $items.find('.mobile-accordion-measuring-wrap'), ' :: ', $items.find('.mobile-accordion-measuring-wrap').height());
                 var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
+                if ($curMaster.length) {
+                    if ($curMaster.hasClass('is-expanded')) {
+                        var curMasterHeight = $curMaster.height();
+                        console.log("curMasterHeight: ", curMasterHeight);
+                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight + h);
+                    }
+                }
                 $items.removeClass('is-collapsed').addClass('is-expanded').height(h);
                 prevItems.$heads = $curHead;
                 api.fireEvent('accordion:update-items', 'expanded');
             } else {
+                var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
                 $curHead.removeClass('is-expanded').addClass('is-collapsed');
+                if ($curMaster.length) {
+                    if ($curMaster.hasClass('is-expanded')) {
+                        var curMasterHeight = $curMaster.height();
+                        console.log("curMasterHeight: ", curMasterHeight);
+                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - h);
+                    }
+                }
                 $items.removeClass('is-expanded').addClass('is-collapsed').height(0);
                 prevItems.$heads = [];
                 api.fireEvent('accordion:update-items', 'collapsed');
