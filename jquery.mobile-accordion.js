@@ -29,7 +29,8 @@
  */
 (function ($) {
     $.fn.simpleAccordionList = function (settings) {
-        var defaults = {
+        var api = this,
+            defaults = {
                 defaultTrigger: null,
                 allAllowedOpen: false,
                 elements: {
@@ -91,17 +92,24 @@
 
             head.toggleClass('master-expanded');
 
-            if (master.length && master.is(':visible')) {
-                master.find('.mobile-accordion-list').slideToggle();
+            if (master.length) {
+                var $list = master.find('.mobile-accordion-list'),
+                    height = $list.children('.mobile-accordion-measuring-wrap').outerHeight(true),
+                    isExpanded = $list.hasClass('is-expanded');
+                if (isExpanded) {
+                    $list.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                } else {
+                    $list.removeClass('is-collapsed').addClass('is-expanded').height(height);
+                }
             }
             return false;
         });
 
         this.find('.mobile-accordion-list-trigger').click(function (e) {
             var $this = $(this),
-                heads = $('.mobile-accordion-list-head'),
-                myHead = $this.parent('.mobile-accordion-list-head'),
-                items = $this.siblings('.mobile-accordion-list-items');
+                $heads = $('.mobile-accordion-list-head'),
+                $curHead = $this.parent('.mobile-accordion-list-head'),
+                $items = $this.siblings('.mobile-accordion-list-items');
 
             if (e.target) {
                 if ($(e.target).parent(options.elements.triggerTag).length) {
@@ -117,34 +125,35 @@
             if (!options.allAllowedOpen) {
                 // allItems.slideUp();
                 allItems.removeClass('is-expanded').addClass('is-collapsed');
-                heads.each(function () {
-                    console.log($(this), ' :: ', myHead);
+                $heads.each(function () {
                     if (prevItems.$heads.length && !prevItems.$heads.hasClass('is-expanded')) {
                         $(this).removeClass('is-expanded').addClass('is-collapsed');
                     }
                 });
             }
 
-            console.log('head: ', heads);
-            // heads.removeClass('is-expanded').addClass('is-collapsed');
-
-            if (myHead.hasClass('is-collapsed')) {
-                myHead.removeClass('is-collapsed').addClass('is-expanded');
-                console.log('height: ', items.find('.mobile-accordion-measuring-wrap'), ' :: ', items.find('.mobile-accordion-measuring-wrap').height());
-                var h = items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
-                items.removeClass('is-collapsed').addClass('is-expanded').height(h);
-                prevItems.$heads = myHead;
+            if ($curHead.hasClass('is-collapsed')) {
+                $curHead.removeClass('is-collapsed').addClass('is-expanded');
+                console.log('height: ', $items.find('.mobile-accordion-measuring-wrap'), ' :: ', $items.find('.mobile-accordion-measuring-wrap').height());
+                var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
+                $items.removeClass('is-collapsed').addClass('is-expanded').height(h);
+                prevItems.$heads = $curHead;
+                api.fireEvent('accordion:update-items', 'expanded');
             } else {
-                myHead.removeClass('is-expanded').addClass('is-collapsed');
-                items.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                $curHead.removeClass('is-expanded').addClass('is-collapsed');
+                $items.removeClass('is-expanded').addClass('is-collapsed').height(0);
                 prevItems.$heads = [];
+                api.fireEvent('accordion:update-items', 'collapsed');
             }
 
+            console.log('ending here');
             return false;
 
+            console.log('if you made it here...you are wrong');
+
 //            if (items.is(':hidden')) {
-            if (items.hasClass('is-collapsed')) {
-                myHead.removeClass('is-collapsed').addClass('is-expanded');
+            if ($items.hasClass('is-collapsed')) {
+                $curHead.removeClass('is-collapsed').addClass('is-expanded');
                 if (options.defaultTrigger) {
                     // no animation on the initial open
                     options.defaultTrigger = null;
@@ -154,16 +163,18 @@
 //                    items.removeClass('is-expanded').addClass('is-collapsed');
 //                    items.slideDown();
                 }
-                items.removeClass('is-collapsed').addClass('is-expanded');
+                $items.removeClass('is-collapsed').addClass('is-expanded');
             } else {
-                items.removeClass('is-expanded').addClass('is-collapsed');
+                $items.removeClass('is-expanded').addClass('is-collapsed');
             }
             return false;
         });
 
-        if (options.defaultTrigger) {
-            $(options.defaultTrigger).click();
-        }
+        this.fireEvent = function (event) {
+            if ($.publish && event) {
+                $.publish(event, [].slice.call(arguments, 1));
+            }
+        };
 
         return this;
     };
