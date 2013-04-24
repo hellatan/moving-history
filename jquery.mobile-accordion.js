@@ -141,22 +141,24 @@
                 var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
                 if ($curMaster.length) {
                     if ($curMaster.hasClass('is-expanded')) {
-                        var curMasterHeight = $curMaster.height();
+                        var curMasterHeight = $curMaster.height(),
+                            itemHeight = $this.outerHeight(true);
                         console.log("curMasterHeight: ", curMasterHeight);
-                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight + h);
+                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight + (h - itemHeight));
                     }
                 }
                 $items.removeClass('is-collapsed').addClass('is-expanded').height(h);
                 prevItems.$heads = $curHead;
                 api.fireEvent('accordion:update-items', 'expanded');
             } else {
-                var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
                 $curHead.removeClass('is-expanded').addClass('is-collapsed');
                 if ($curMaster.length) {
                     if ($curMaster.hasClass('is-expanded')) {
-                        var curMasterHeight = $curMaster.height();
+                        var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true),
+                            itemHeight = $this.outerHeight(true),
+                            curMasterHeight = $curMaster.height();
                         console.log("curMasterHeight: ", curMasterHeight);
-                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - h);
+                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - (h + itemHeight));
                     }
                 }
                 $items.removeClass('is-expanded').addClass('is-collapsed').height(0);
