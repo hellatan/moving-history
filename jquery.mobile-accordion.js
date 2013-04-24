@@ -34,14 +34,56 @@
                 allAllowedOpen: false,
                 elements: {
                     triggerTag: 'span' // this case is when a link is inside the accordion trigger
+                },
+                storage: {
+                    prefix: 'accordion-list-status'
                 }
             },
             prevItems = {
                 $masterHead: [],
                 $heads: []
             },
+            storage = {},
             options = $.extend(true, defaults, settings),
             allItems = $('.mobile-accordion-list-items');
+
+
+        this.each(function (i, a) {
+            var $this = $(this),
+                id = $this.prop('id'),
+                isExpanded = $this.find('.mobile-accordion-list-head').hasClass('is-expanded'),
+                status = isExpanded ? 'is-expanded' : 'is-collapsed';
+
+            if (!id) {
+                id = options.storage.prefix + ':' + i;
+            } else {
+                id = options.storage.prefix + ':' + id;
+            }
+            if (!storage[id]) {
+                storage[id] = {};
+            }
+
+            /**
+             *
+             *  NEED TO FIGURE OUT HOW TO NOT RELY ON LOCALSTORAGE STUFF HERE
+             *
+             */
+
+            if (dibs.findNamespaceValue('dibs.utils.localStorage')) {
+                var tmp = dibs.utils.localStorage.getItem(id);
+                if (!tmp) {
+                    dibs.utils.localStorage.setItem(id, status);
+                } else {
+                    if (tmp !== status) {
+                        dibs.utils.localStorage.setItem(id, status);
+                    }
+                    status = tmp;
+                }
+            }
+
+            storage[id].status = status;
+
+        });
 
         this.find('.master-mobile-accordion-list-trigger').click(function () {
             var master = $(this).parents('.master'),
