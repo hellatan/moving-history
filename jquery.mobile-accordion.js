@@ -33,7 +33,7 @@
             defaults = {
                 path: null,
                 defaultTrigger: null,
-                allAllowedOpen: false,
+                allowAllOpened: false,
                 elements: {
                     triggerTag: 'span' // this case is when a link is inside the accordion trigger
                 },
@@ -125,9 +125,15 @@
                 }
             }
 
-            if (!options.allAllowedOpen) {
-                // allItems.slideUp();
-                $allItems.removeClass('is-expanded').addClass('is-collapsed');
+            if (!options.allowAllOpened) {
+                $allItems.each(function () {
+                    var $this = $(this),
+                        $par = $this.parent('.is-expanded');
+                    $this.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                    if ($par.length) {
+                        $par.removeClass('is-expanded').addClass('is-collapsed');
+                    }
+                });
                 $heads.each(function () {
                     if (prevItems.$heads.length && !prevItems.$heads.hasClass('is-expanded')) {
                         $(this).removeClass('is-expanded').addClass('is-collapsed');
