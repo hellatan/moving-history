@@ -167,7 +167,10 @@
                         $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - (h + itemHeight));
                     }
                 }
-                $items.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                // the first .height() function is set here so that initially "is-expanded" facets
+                // will be able to animate correctly once the second .height(0) function is called
+                // otherwise the initial closing/collapsing click jsut snaps and doesn't animate
+                $items.height($items.outerHeight(true)).removeClass('is-expanded').addClass('is-collapsed').height(0);
                 prevItems.$heads = [];
                 api.fireEvent('accordion:update-items', 'collapsed');
             }
