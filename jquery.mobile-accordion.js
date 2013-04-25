@@ -148,10 +148,10 @@
                     isExpanded = $list.hasClass('is-expanded');
                 if (isExpanded) {
                     $master.removeClass('is-expanded').addClass('is-collapsed');
-                    $list.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                    $list.height(height).removeClass('is-expanded').addClass('is-collapsed').height(0);
                 } else {
                     $master.removeClass('is-collapsed').addClass('is-expanded');
-                    $list.removeClass('is-collapsed').addClass('is-expanded').height(height);
+                    $list.height(height).removeClass('is-collapsed').addClass('is-expanded');
                 }
             }
             return false;
@@ -163,7 +163,8 @@
                 $heads = $('.mobile-accordion-list-head'),
                 $curMaster = $this.parents('.master'),
                 $curHead = $this.parent('.mobile-accordion-list-head'),
-                $items = $this.siblings('.mobile-accordion-list-items');
+                $items = $this.siblings('.mobile-accordion-list-items'),
+                measuringHeight, curMasterHeight, itemHeight;
 
             if (e.target) {
                 if ($(e.target).parent(options.elements.triggerTag).length) {
@@ -193,20 +194,25 @@
                 });
             }
 
+            measuringHeight = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
+            itemHeight = $this.outerHeight(true);
+
+            console.log('this: ', $this);
+
             if ($curHead.hasClass('is-collapsed')) {
                 var eventType = null;
                 $curHead.removeClass('is-collapsed').addClass('is-expanded');
                 console.log('height: ', $items.find('.mobile-accordion-measuring-wrap'), ' :: ', $items.find('.mobile-accordion-measuring-wrap').height());
-                var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
                 if ($curMaster.length) {
                     if ($curMaster.hasClass('is-expanded')) {
-                        var curMasterHeight = $curMaster.height(),
-                            itemHeight = $this.outerHeight(true);
-                        console.log("curMasterHeight: ", curMasterHeight);
-                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight + (h - itemHeight));
+                        curMasterHeight = $curMaster.height();
+                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight + (measuringHeight - itemHeight));
                     }
                 }
-                $items.removeClass('is-collapsed').addClass('is-expanded').height(h);
+                // give it a height before applying the classes otherwise the first animation
+                // will not happen and the accordion will just snap in but on subsequent expands
+                // it will animate since there is a height assigned to it
+                $items.height(measuringHeight).removeClass('is-collapsed').addClass('is-expanded').height(measuringHeight);
                 prevItems.$heads = $curHead;
                 $this.data('isExpanded', true);
                 eventType = 'is-expanded';
@@ -214,16 +220,13 @@
                 $curHead.removeClass('is-expanded').addClass('is-collapsed');
                 if ($curMaster.length) {
                     if ($curMaster.hasClass('is-expanded')) {
-                        var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true),
-                            itemHeight = $this.outerHeight(true),
-                            curMasterHeight = $curMaster.height();
-                        console.log("curMasterHeight: ", curMasterHeight);
-                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - (h + itemHeight));
+                        curMasterHeight = $curMaster.height();
+                        $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - (measuringHeight + itemHeight));
                     }
                 }
                 // the first .height() function is set here so that initially "is-expanded" facets
                 // will be able to animate correctly once the second .height(0) function is called
-                // otherwise the initial closing/collapsing click jsut snaps and doesn't animate
+                // otherwise the initial closing/collapsing click just snaps and doesn't animate
                 $items.height($items.outerHeight(true)).removeClass('is-expanded').addClass('is-collapsed').height(0);
                 prevItems.$heads = [];
                 // this means the user has clicked the same accordion trigger twice in a row - once to open it, the second time to close it
