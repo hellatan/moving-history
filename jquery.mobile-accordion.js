@@ -1,16 +1,16 @@
 /*! /dibs/assets/js/dibs/mobile-accordion.js  */
 /**
- * Created by timwhidden
- * Date: 29/08/2012
+ * Created by daletan, modified from jquery.simple-accordion.js by timwhidden
+ * Date: 24/04/2013
  * Time: 17:43
- * Copyright 1stdibs.com, Inc. 2012. All Rights Reserved.
+ * Copyright 1stdibs.com, Inc. 2013. All Rights Reserved.
  *
  * markup structure must be like so:
  *
- * <ul class="my-class">
- *      <li class="accordion-list-head is-collapsed">
- *          <a href="#" class="accordion-list-trigger">head item (expands the list)</a>
- *          <ul class="accordion-list-items" style='display: none;'>
+ * <ul class="mobile-accordion-list">
+ *      <li class="mobile-accordion-list-head is-collapsed">
+ *          <a href="#" class="mobile-accordion-list-trigger">head item (expands the list)</a>
+ *          <ul class="mobile-accordion-list-items">
  *              <li><a href="#">item</a></li>
  *              <li><a href="#">item</a></li>
  *              ...etc..
