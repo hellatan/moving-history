@@ -41,7 +41,9 @@
                 storage: {
                     prefix: 'accordion-list-status',
                     // override this with dibs.utils.localStorage
-                    method: window.localStorage || $.cookie
+                    // use the "storage.method" property if trying to
+                    // remember the user state of the accordion
+                    method: null// window.localStorage || $.cookie
                 }
             },
             prevItems = {
@@ -67,28 +69,31 @@
                 storage[id] = {};
             }
 
-            if (options.storage.method.getItem) {
-                var tmp = options.storage.method.getItem(id);
-                if (!tmp) {
-                    options.storage.method.setItem(id, status);
-                } else {
-                    if (tmp !== status) {
-                        options.storage.method.setItem(id, status);
-                    }
-                    status = tmp;
-                }
-            } else {
-                if (options.storage.method) { // just make sure it exists and should be the $.cookie method
-                    var tmp = options.storage.method(id);
+            if (options.storage.method) {
+                if (options.storage.method.getItem) {
+                    var tmp = options.storage.method.getItem(id);
                     if (!tmp) {
-                        options.storage.method(id, status);
+                        options.storage.method.setItem(id, status);
                     } else {
                         if (tmp !== status) {
-                            options.storage.method(id, status);
+                            options.storage.method.setItem(id, status);
                         }
                         status = tmp;
                     }
+                } else {
+                    if (options.storage.method) { // just make sure it exists and should be the $.cookie method
+                        var tmp = options.storage.method(id);
+                        if (!tmp) {
+                            options.storage.method(id, status);
+                        } else {
+                            if (tmp !== status) {
+                                options.storage.method(id, status);
+                            }
+                            status = tmp;
+                        }
+                    }
                 }
+
             }
 
 
