@@ -164,7 +164,7 @@
                 $curMaster = $this.parents('.master'),
                 $curHead = $this.parent('.mobile-accordion-list-head'),
                 $items = $this.siblings('.mobile-accordion-list-items'),
-                measuringHeight, curMasterHeight, itemHeight;
+                measuringHeight, curMasterHeight, itemHeight, eventType;
 
             if (e.target) {
                 if ($(e.target).parent(options.elements.triggerTag).length) {
@@ -200,7 +200,6 @@
             console.log('this: ', $this);
 
             if ($curHead.hasClass('is-collapsed')) {
-                var eventType = null;
                 $curHead.removeClass('is-collapsed').addClass('is-expanded');
                 console.log('height: ', $items.find('.mobile-accordion-measuring-wrap'), ' :: ', $items.find('.mobile-accordion-measuring-wrap').height());
                 if ($curMaster.length) {
