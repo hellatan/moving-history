@@ -38,13 +38,14 @@
                 elements: {
                     triggerTag: 'span' // this case is when a link is inside the accordion trigger
                 },
-                storage: {
+                storageSettings: {
                     prefix: 'accordion-list-status',
                     // override this with dibs.utils.localStorage
                     // use the "storage.method" property if trying to
                     // remember the user state of the accordion
                     method: null// window.localStorage || $.cookie
-                }
+                },
+                storage: {}
             },
             prevItems = {
                 $masterHead: [],
@@ -54,50 +55,81 @@
             options = $.extend(true, defaults, settings),
             $allItems = $('.mobile-accordion-list-items');
 
+        var storageMethod = (function  (id, state) {
+            var getItem, setItem;
+            if (options.storageSettings.method) {
+                if (options.storageSettings.method.getItem) {
+                    getItem = function (id) {
+                        return options.storageSettings.method.getItem.call(options.storageSettings.method, id);
+                    };
+                    setItem = function (id, state) {
+                        options.storageSettings.method.setItem.call(options.storageSettings.method, id, state);
+                    };
+                } else {
+                    // should be the $.cookie method
+                    getItem = function (id) {
+                        return options.storageSettings.method(id);
+                    };
+                    setItem = function (id, state) {
+                        options.storageSettings.method(id, state);
+                    };
+                }
+            } else {
+                getItem = function (id) {
+                    return storage[id];
+                };
+                setItem = function (id, state) {
+                    if (!storage[id]) {
+                        storage[id] = {};
+                    }
+                    storage[id].state = state;
+                };
+            }
+            return  {
+                getItem: getItem,
+                setItem: setItem
+            };
+        })();
+
         this.each(function (i, a) {
             var $this = $(this),
                 id = $this.prop('id'),
-                isExpanded = $this.find('.mobile-accordion-list-head').hasClass('is-expanded'),
-                status = isExpanded ? 'is-expanded' : 'is-collapsed';
+                $listHead = $this.find('.mobile-accordion-list-head'),
+                isExpanded = $listHead.hasClass('is-expanded'),
+                state = isExpanded ? 'is-expanded' : 'is-collapsed',
+                parentId;
 
-            if (!id) {
-                id = options.storage.prefix + ':' + i;
+            if (options.parentClass) {
+                parentId = $this.closest('.' + options.parentClass).prop('id');
+            }
+
+            if (!id && !parentId) {
+                id = options.storageSettings.prefix + ':' + i;
             } else {
-                id = options.storage.prefix + ':' + id;
+                if (parentId) {
+                    id = options.storageSettings.prefix + ':' + parentId;
+                } else {
+                    id = options.storageSettings.prefix + ':' + id;
+                }
             }
             if (!storage[id]) {
                 storage[id] = {};
             }
 
-            if (options.storage.method) {
-                if (options.storage.method.getItem) {
-                    var tmp = options.storage.method.getItem(id);
-                    if (!tmp) {
-                        options.storage.method.setItem(id, status);
-                    } else {
-                        if (tmp !== status) {
-                            options.storage.method.setItem(id, status);
-                        }
-                        status = tmp;
-                    }
-                } else {
-                    if (options.storage.method) { // just make sure it exists and should be the $.cookie method
-                        var tmp = options.storage.method(id);
-                        if (!tmp) {
-                            options.storage.method(id, status);
-                        } else {
-                            if (tmp !== status) {
-                                options.storage.method(id, status);
-                            }
-                            status = tmp;
-                        }
-                    }
+            var tmp = storageMethod.getItem(id);
+            console.log('we got a tmp: ', tmp, ' Id: ', id, ' state: ', state);
+            if (!tmp) {
+                storageMethod.setItem(id, state);
+            } else {
+                if (tmp !== state) {
+                    storageMethod.setItem(id, state);
                 }
-
+                state = tmp;
             }
 
-
-            storage[id].status = status;
+            console.log('id: ', storageMethod.getItem(id));
+            $listHead.data('storageid', id).data('state', state);
+            storage[id].state = state;
 
         });
 
@@ -159,6 +191,7 @@
             }
 
             if ($curHead.hasClass('is-collapsed')) {
+                var eventType = null;
                 $curHead.removeClass('is-collapsed').addClass('is-expanded');
                 console.log('height: ', $items.find('.mobile-accordion-measuring-wrap'), ' :: ', $items.find('.mobile-accordion-measuring-wrap').height());
                 var h = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
@@ -173,7 +206,7 @@
                 $items.removeClass('is-collapsed').addClass('is-expanded').height(h);
                 prevItems.$heads = $curHead;
                 $this.data('isExpanded', true);
-                api.fireEvent('accordion:update-items', 'expanded');
+                eventType = 'is-expanded';
             } else {
                 $curHead.removeClass('is-expanded').addClass('is-collapsed');
                 if ($curMaster.length) {
@@ -192,29 +225,11 @@
                 prevItems.$heads = [];
                 // this means the user has clicked the same accordion trigger twice in a row - once to open it, the second time to close it
                 $this.data('isExpanded', false);
-                api.fireEvent('accordion:update-items', 'collapsed');
+                eventType = 'is-collapsed';
             }
-
-            console.log('ending here');
-            return false;
-
-            console.log('if you made it here...you are wrong');
-
-//            if (items.is(':hidden')) {
-            if ($items.hasClass('is-collapsed')) {
-                $curHead.removeClass('is-collapsed').addClass('is-expanded');
-                if (options.defaultTrigger) {
-                    // no animation on the initial open
-                    options.defaultTrigger = null;
-//                    items.show();
-//                    items.removeClass('is-collapsed').addClass('is-expanded');
-                } else {
-//                    items.removeClass('is-expanded').addClass('is-collapsed');
-//                    items.slideDown();
-                }
-                $items.removeClass('is-collapsed').addClass('is-expanded');
-            } else {
-                $items.removeClass('is-expanded').addClass('is-collapsed');
+            api.fireEvent('accordion:update-items', eventType);
+            if (options.parentClass) {
+                api.updateFacetStates($this.closest('.mobile-accordion-list-head'), eventType);
             }
             return false;
         });
@@ -222,6 +237,22 @@
         this.fireEvent = function (event) {
             if ($.publish && event) {
                 $.publish(event, [].slice.call(arguments, 1));
+            }
+        };
+
+        /**
+         * This allows for updating the collapsed/expanded states of facets
+         * after an ajax request rather than having to reinstantiating
+         * @param facets
+         */
+        this.updateFacetStates = function ($facet, state) {
+            console.log('facet: ', $facet.data());
+            if ($facet.length && state) {
+                var data = $facet.data();
+                $facet.data('state', state);
+                if (data.storageid) {
+                    storageMethod.setItem(data.storageid, state)
+                }
             }
         };
 
