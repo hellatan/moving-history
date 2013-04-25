@@ -29,12 +29,15 @@
  */
 (function ($) {
     "use strict";
-    $.fn.simpleAccordionList = function (settings) {
+    $.fn.mobileAccordionList = function (settings) {
         var api = this,
             defaults = {
-                path: null,
-                defaultTrigger: null,
                 allowAllOpened: false,
+                baseClass: '.mobile-accordion-list',
+                defaultTrigger: null,
+                // having the parent class allows to search for some sort of ID
+                parentClass: null,
+                path: null,
                 elements: {
                     triggerTag: 'span' // this case is when a link is inside the accordion trigger
                 },
