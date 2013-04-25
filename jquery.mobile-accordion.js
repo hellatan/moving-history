@@ -119,6 +119,7 @@
 
         this.find('.mobile-accordion-list-trigger').click(function (e) {
             var $this = $(this),
+                $rootItem = $this,
                 $heads = $('.mobile-accordion-list-head'),
                 $curMaster = $this.parents('.master'),
                 $curHead = $this.parent('.mobile-accordion-list-head'),
@@ -137,10 +138,11 @@
 
             if (!options.allowAllOpened) {
                 $allItems.each(function () {
-                    var $this = $(this),
-                        $par = $this.parent('.is-expanded');
-                    $this.removeClass('is-expanded').addClass('is-collapsed').height(0);
-                    if ($par.length) {
+                    var $thisItem = $(this),
+                        $par = $thisItem.parent('.is-expanded');
+                    $thisItem.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                    if ($par.length && !$rootItem.data('isExpanded')) {
+                        // need to make sure that $par isn't the same as prevItems.$heads
                         $par.removeClass('is-expanded').addClass('is-collapsed');
                     }
                 });
@@ -165,6 +167,7 @@
                 }
                 $items.removeClass('is-collapsed').addClass('is-expanded').height(h);
                 prevItems.$heads = $curHead;
+                $this.data('isExpanded', true);
                 api.fireEvent('accordion:update-items', 'expanded');
             } else {
                 $curHead.removeClass('is-expanded').addClass('is-collapsed');
@@ -182,6 +185,8 @@
                 // otherwise the initial closing/collapsing click jsut snaps and doesn't animate
                 $items.height($items.outerHeight(true)).removeClass('is-expanded').addClass('is-collapsed').height(0);
                 prevItems.$heads = [];
+                // this means the user has clicked the same accordion trigger twice in a row - once to open it, the second time to close it
+                $this.data('isExpanded', false);
                 api.fireEvent('accordion:update-items', 'collapsed');
             }
 
