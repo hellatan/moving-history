@@ -51,7 +51,8 @@
                 storage: {}
             },
             events = {
-                accordionUpdate: 'accordion:update-items'
+                accordionUpdate: 'accordion:update-items',
+                accordionClicked: 'accordion:clicked'
             },
             prevItems = {
                 $masterHead: [],
@@ -141,7 +142,7 @@
                             $listHead.removeClass('is-expanded').addClass('is-collapsed');
                             $listItems.height(height).removeClass('is-expanded').addClass('is-collapsed').height(0);
                         }
-                        api.fireEvent(events.accordionUpdate, $listHead, storedState);
+                        api.fireEvent(events.accordionUpdate, null, $listHead, storedState);
                     }
                     state = storedState;
                 }
@@ -245,7 +246,9 @@
                     $this.data('isExpanded', false);
                     facetState = 'is-collapsed';
                 }
-                api.fireEvent(events.accordionUpdate, $this, facetState);
+                api.fireEvent(events.accordionUpdate, e, $this, facetState);
+                // this ensures this is an actual click for tracking purposes
+                api.fireEvent(events.accordionClicked, e, $this, facetState);
                 if (options.parentClass) {
                     api.updateFacetStates($this.closest('.mobile-accordion-list-head'), facetState);
                 }
