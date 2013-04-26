@@ -152,7 +152,6 @@
 
             });
 
-
             api.find('.master-mobile-accordion-list-trigger').click(function () {
                 var $master = $(this).parents('.master'),
                     head = $(this).parent('.mobile-accordion-list-head');
@@ -225,6 +224,7 @@
                     // give it a height before applying the classes otherwise the first animation
                     // will not happen and the accordion will just snap in but on subsequent expands
                     // it will animate since there is a height assigned to it
+                    // this works fine in chrome unlike the case stated below
                     $items.height(measuringHeight).removeClass('is-collapsed').addClass('is-expanded').height(measuringHeight);
                     prevItems.$heads = $curHead;
                     $this.data('isExpanded', true);
@@ -240,6 +240,7 @@
                     // the first .height() function is set here so that initially "is-expanded" facets
                     // will be able to animate correctly once the second .height(0) function is called
                     // otherwise the initial closing/collapsing click just snaps and doesn't animate
+                    // this seems to be fine in firefox but does not apply to chrome
                     $items.height($items.outerHeight(true)).removeClass('is-expanded').addClass('is-collapsed').height(0);
                     prevItems.$heads = [];
                     // this means the user has clicked the same accordion trigger twice in a row - once to open it, the second time to close it
@@ -256,6 +257,11 @@
             });
         }
 
+        /**
+         * just a wrapper for the $.publish handler
+         * @param event {String} The event name
+         * @param arguments {Mixed} 1..n Any number of arguments to pass along to the publisher
+         */
         this.fireEvent = function (event) {
             if ($.publish && event) {
                 $.publish(event, [].slice.call(arguments, 1));
