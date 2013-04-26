@@ -119,18 +119,24 @@
                 storage[id] = {};
             }
 
-            var tmp = storageMethod.getItem(id);
-            console.log('we got a tmp: ', tmp, ' Id: ', id, ' state: ', state);
-            if (!tmp) {
+            var storedState = storageMethod.getItem(id);
+            if (!storedState) {
                 storageMethod.setItem(id, state);
             } else {
-                if (tmp !== state) {
-                    storageMethod.setItem(id, state);
+                if (storedState !== state) {
+                    var $listItems = $listHead.find('.mobile-accordion-list-items'),
+                        height = $listItems.find('.mobile-accordion-measuring-wrap').outerHeight(true);
+                    if (storedState === 'is-expanded') {
+                        $listHead.removeClass('is-collapsed').addClass('is-expanded');
+                        $listItems.height(height).removeClass('is-collapsed').addClass('is-expanded');
+                    } else {
+                        $listHead.removeClass('is-expanded').addClass('is-collapsed');
+                        $listItems.height(height).removeClass('is-expanded').addClass('is-collapsed').height(0);
+                    }
                 }
-                state = tmp;
+                state = storedState;
             }
 
-            console.log('id: ', storageMethod.getItem(id));
             $listHead.data('storageid', id).data('state', state);
             storage[id].state = state;
 
