@@ -68,24 +68,24 @@
          */
         var storageMethod = (function  () {
             var getItem, setItem;
-            if (options.storageSettings.method) {
-                if (options.storageSettings.method.getItem) {
-                    getItem = function (id) {
-                        return options.storageSettings.method.getItem.call(options.storageSettings.method, id);
-                    };
-                    setItem = function (id, state) {
-                        options.storageSettings.method.setItem.call(options.storageSettings.method, id, state);
-                    };
-                } else {
-                    // should be the $.cookie method
-                    getItem = function (id) {
-                        return options.storageSettings.method(id);
-                    };
-                    setItem = function (id, state) {
-                        options.storageSettings.method(id, state);
-                    };
-                }
+            if ((options.storageSettings.method && options.storageSettings.method.getItem)) {
+                // browser has localStorage
+                getItem = function (id) {
+                    return options.storageSettings.method.getItem.call(options.storageSettings.method, id);
+                };
+                setItem = function (id, state) {
+                    options.storageSettings.method.setItem.call(options.storageSettings.method, id, state);
+                };
+            } else if (typeof options.storageSettings.method === 'function') {
+                // should be the $.cookie method
+                getItem = function (id) {
+                    return options.storageSettings.method(id);
+                };
+                setItem = function (id, state) {
+                    options.storageSettings.method(id, state);
+                };
             } else {
+                // no localStorage and no $.cookie plugin
                 getItem = function (id) {
                     return storage[id];
                 };
