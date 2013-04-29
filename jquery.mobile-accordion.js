@@ -48,6 +48,11 @@
                     // remember the user state of the accordion
                     method: null// window.localStorage || $.cookie
                 },
+                deviceWidths: {
+                    // just going to hardcode these dimensions for now
+                    mobile: 568,
+                    tablet: 1024
+                },
                 storage: {}
             },
             events = {
@@ -60,6 +65,8 @@
             },
             storage = {},
             options = $.extend(true, defaults, settings),
+            windowW = $(window).width(),
+            deviceType = windowW <= options.deviceWidths.mobile ? 'mobile' : windowW > options.deviceWidths.tablet ? 'desktop' : 'tablet',
             $allItems = $('.mobile-accordion-list-items');
 
         /**
@@ -105,10 +112,12 @@
         function init() {
             api.each(function (i, a) {
                 var $this = $(this),
+                    data = $this.data(),
                     id = $this.prop('id'),
                     $listHead = $this.find('.mobile-accordion-list-head'),
                     isExpanded = $listHead.hasClass('is-expanded'),
                     state = isExpanded ? 'is-expanded' : 'is-collapsed',
+                    storageId = id,
                     parentId;
 
                 if (options.parentClass) {
@@ -124,17 +133,36 @@
                         id = options.storageSettings.prefix + ':' + id;
                     }
                 }
+
                 if (!storage[id]) {
                     storage[id] = {};
                 }
 
-                var storedState = storageMethod.getItem(id);
+                if (data) {
+                    for (var p in data) {
+                        if (data.hasOwnProperty(p)) {
+                            if (p.indexOf('initialstate') === 0) {
+                                var viewType = p.substring('initialstate'.length);
+                                if (!storage[id][viewType]) {
+                                    storage[id][viewType] = data[p];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (storage[id][deviceType]) {
+                    storageId = id + ':' + deviceType;
+                }
+
+                var storedState = storageMethod.getItem(storageId),
+                    $listItems = $listHead.find('.mobile-accordion-list-items'),
+                    height = $listItems.find('.mobile-accordion-measuring-wrap').outerHeight(true);
+
                 if (!storedState) {
-                    storageMethod.setItem(id, state);
+                    storageMethod.setItem(storageId, state);
                 } else {
                     if (storedState !== state) {
-                        var $listItems = $listHead.find('.mobile-accordion-list-items'),
-                            height = $listItems.find('.mobile-accordion-measuring-wrap').outerHeight(true);
                         if (storedState === 'is-expanded') {
                             $listHead.removeClass('is-collapsed').addClass('is-expanded');
                             $listItems.height(height).removeClass('is-collapsed').addClass('is-expanded');
@@ -147,7 +175,15 @@
                     state = storedState;
                 }
 
-                $listHead.data('storageid', id).data('state', state);
+                if (deviceType === 'desktop') {
+                    var clickedStoredState = storageMethod.getItem(storageId + ':clicked');
+                    if (!clickedStoredState && state === 'is-collapsed') {
+                        $listHead.removeClass('is-collapsed').addClass('is-expanded');
+                        $listItems.height(height).removeClass('is-collapsed').addClass('is-expanded');
+                    }
+                }
+
+                $listHead.data('storageid', storageId).data('state', state);
                 storage[id].state = state;
 
             });
@@ -279,6 +315,7 @@
                 $facet.data('state', state);
                 if (data.storageid) {
                     storageMethod.setItem(data.storageid, state);
+                    storageMethod.setItem(data.storageid + ':clicked', state);
                 }
             }
         };
