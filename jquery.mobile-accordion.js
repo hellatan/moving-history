@@ -118,7 +118,7 @@
                     isExpanded = $listHead.hasClass('is-expanded'),
                     state = isExpanded ? 'is-expanded' : 'is-collapsed',
                     storageId = id,
-                    parentId;
+                    parentId, storedState, $listItems, height, clickedStoredState;
 
                 if (options.parentClass) {
                     parentId = $this.closest('.' + options.parentClass).prop('id');
@@ -155,9 +155,9 @@
                     storageId = id + ':' + deviceType;
                 }
 
-                var storedState = storageMethod.getItem(storageId),
-                    $listItems = $listHead.find('.mobile-accordion-list-items'),
-                    height = $listItems.find('.mobile-accordion-measuring-wrap').outerHeight(true);
+                storedState = storageMethod.getItem(storageId);
+                $listItems = $listHead.find('.mobile-accordion-list-items');
+                height = $listItems.find('.mobile-accordion-measuring-wrap').outerHeight(true);
 
                 if (!storedState) {
                     storageMethod.setItem(storageId, state);
@@ -176,7 +176,7 @@
                 }
 
                 if (deviceType === 'desktop') {
-                    var clickedStoredState = storageMethod.getItem(storageId + ':clicked');
+                    clickedStoredState = storageMethod.getItem(storageId + ':clicked');
                     if (!clickedStoredState && state === 'is-collapsed') {
                         $listHead.removeClass('is-collapsed').addClass('is-expanded');
                         $listHead.find('.facet-header-triangle.triangle.right').removeClass('right').addClass('down');
@@ -306,9 +306,9 @@
         };
 
         /**
-         * This allows for updating the collapsed/expanded states of facets
-         * after an ajax request rather than having to reinstantiating
-         * @param facets
+         * updates the storage state of the facets
+         * @param $facet
+         * @param state
          */
         this.updateFacetStates = function ($facet, state) {
             if ($facet.length && state) {
