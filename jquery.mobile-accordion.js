@@ -179,6 +179,7 @@
                     var clickedStoredState = storageMethod.getItem(storageId + ':clicked');
                     if (!clickedStoredState && state === 'is-collapsed') {
                         $listHead.removeClass('is-collapsed').addClass('is-expanded');
+                        $listHead.find('.facet-header-triangle.triangle.right').removeClass('right').addClass('down');
                         $listItems.height(height).removeClass('is-collapsed').addClass('is-expanded');
                     }
                 }
