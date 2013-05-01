@@ -90,7 +90,7 @@
      * A wrapper around the options.storageSettings.method value passed in
      * This will support localStorage, cookies, and private variable references
      */
-    var storageMethod = function  (options) {
+    var getStorageMethod = function  (options) {
         if (!options) {
             return;
         }
@@ -127,7 +127,9 @@
             getItem: getItem,
             setItem: setItem
         };
-    };
+    },
+    storageMethod;
+
 
 
     /**
@@ -163,7 +165,9 @@
         function init(settings) {
             options = $.extend(true, defaults, settings);
             deviceType = windowW <= options.deviceWidths.mobile ? 'mobile' : windowW > options.deviceWidths.tablet ? 'desktop' : 'tablet';
-            storageMethod = storageMethod(options);
+            // need to rethink this way of setting this method since it only should
+            // be created on initial page load and stored in memory
+            storageMethod = getStorageMethod(options);
 
             options._classes = {};
             var klasses = options.classes;
