@@ -10,26 +10,37 @@
  * <ul class="mobile-accordion-list">
  *      <li class="mobile-accordion-list-head is-collapsed">
  *          <a href="#" class="mobile-accordion-list-trigger">head item (expands the list)</a>
- *          <ul class="mobile-accordion-list-items">
- *              <li><a href="#">item</a></li>
- *              <li><a href="#">item</a></li>
- *              ...etc..
- *          </ul>
+ *          <div class="mobile-accordion-list-items">
+ *              <ul class="mobile-accordion-measuring-wrap">
+ *                  <li><a href="#">item</a></li>
+ *                  <li><a href="#">item</a></li>
+ *                  ...etc..
+ *              </ul>
+ *          </div>
  *      </li>
  * </ul>
  *
- * *** INCLUDE SCSS/PLUGINS/SIMPLE-ACCORDION.SCSS ON YOUR TEMPLATE ***
+ * *** INCLUDE scss/plugins/mobile-accordion.scss IN YOUR TEMPLATE ***
  *
  * The wrapping UL which has the accordion method applied to it can be classed or ID'd in any way
- *      The list head must have 'accordion-list-head' class
- *      The list items must have 'accordion-list-items' class and should have style="display:none" on page load
+ *      - The list head must have 'mobile-accordion-list-head' class
+ *          - it can be expanded (.is-expanded) or collapsed (.is-collapsed) by default, depending on which class is applied
+ *      - The actual trigger to expanded/collapse the list must have a 'mobile-accordion-list-trigger' class
+ *      - A div with 'mobile-accordion-list-items' class must be around the actual list
+ *      - The actual list must have a 'mobile-accordion-measuring-wrap' class
+ *      - The `mobile-accordion-list-trigger` and the `mobile-accordion-list-items` must be in this order in the DOM
  *
  * usage (after DOM is ready):
- *      $('.my-class').simpleAccordionList()
+ * - initializing:
+ *      $('.my-class').mobileAccordionList(settings) (settings optional)
+ * - public methods:
+ *      - $('.my-class').mobileAccordionList('height')
+ *      - $('.my-class').mobileAccordionList('originalHeight')
+ *      - $('.my-class').mobileAccordionList('fullHeight', height) (height optional)
+ *      - $('.my-class').mobileAccordionList('changeHeight', height) (height required)
  */
 (function ($) {
     "use strict";
-
 
     var defaults = {
             allowAllOpened: false,
@@ -138,7 +149,7 @@
             $currentSet = $currentSet.children();
         }
         return $found.first(); // Return first match of the collection
-    }
+    };
 
     /**
      * @param method {Object|String} Optional
@@ -225,24 +236,22 @@
                     if (storedState !== state) {
                         if (storedState === expanded) {
                             $listHead.removeClass(collapsed).addClass(expanded);
-                            $listItems.data('collapsedHeight', height).height(height).removeClass(collapsed).addClass(expanded);
+                            $listItems.data('originalHeight', height).height(height).removeClass(collapsed).addClass(expanded);
                         } else {
                             $listHead.removeClass(expanded).addClass(collapsed);
                             $listItems.height(height).removeClass(expanded).addClass(collapsed).height(0);
                         }
-                        api.fireEvent(events.accordionUpdate, null, $listHead, storedState);
+                        fireEvent(events.accordionUpdate, null, $listHead, storedState);
                     }
                     state = storedState;
                 }
-
-                console.log('$list items: ', $listItems);
 
                 if (deviceType === 'desktop') {
                     clickedStoredState = storageMethod.getItem(storageId + ':clicked');
                     if (!clickedStoredState && state === collapsed) {
                         $listHead.removeClass(collapsed).addClass(expanded);
-                        $listItems.data('collapsedHeight', height).height(height).removeClass(collapsed).addClass(expanded);
-                        api.fireEvent(events.accordionUpdate, null, $listHead, expanded);
+                        $listItems.data('originalHeight', height).height(height).removeClass(collapsed).addClass(expanded);
+                        fireEvent(events.accordionUpdate, null, $listHead, expanded);
                     }
                 }
 
@@ -346,11 +355,11 @@
                     $this.data('isExpanded', false);
                     facetState = collapsed;
                 }
-                api.fireEvent(events.accordionUpdate, e, $this, facetState);
+                fireEvent(events.accordionUpdate, e, $this, facetState);
                 // this ensures this is an actual click for tracking purposes
-                api.fireEvent(events.accordionClicked, e, $this, facetState);
+                fireEvent(events.accordionClicked, e, $this, facetState);
                 if (options.parentClass) {
-                    api.updateFacetStates($this.closest('.mobile-accordion-list-head'), facetState);
+                    updateFacetStates($this.closest('.mobile-accordion-list-head'), facetState);
                 }
                 return false;
             });
@@ -361,18 +370,18 @@
          * @param event {String} The event name
          * @param arguments {Mixed} 1..n Any number of arguments to pass along to the publisher
          */
-        this.fireEvent = function (event) {
+        function fireEvent(event) {
             if ($.publish && event) {
                 $.publish(event, [].slice.call(arguments, 1));
             }
-        };
+        }
 
         /**
          * updates the storage state of the facets
          * @param $facet
          * @param state
          */
-        this.updateFacetStates = function ($facet, state) {
+        function updateFacetStates($facet, state) {
             if ($facet.length && state) {
                 var data = $facet.data();
                 $facet.data('state', state);
@@ -381,34 +390,54 @@
                     storageMethod.setItem(data.storageid + ':clicked', state);
                 }
             }
-        };
+        }
 
+        /**
+         * Returns the current height of the measuring div
+         * @returns {Number}
+         */
         this.height = function () {
             return $(this).closestChild('.mobile-accordion-measuring-wrap').height();
         };
 
-        this.collapsedHeight = function() {
+        /**
+         * Gets the original height of the accordion when
+         * @returns {Number}
+         */
+        this.originalHeight = function() {
             var $child = $(this).closestChild('.mobile-accordion-list-items'),
-                ret = $child.data('collapsedHeight');
+                ret = $child.data('originalHeight');
             if (!ret) { // this case should never happen, but just in case...
                 ret = $child.closestChild('.mobile-accordion-measuring-wrap').outerHeight(true);
-                $child.data('collapsedHeight', ret);
+                $child.data('originalHeight', ret);
             }
             return ret;
         };
 
-        this.expandedHeight = function (height) {
+        /**
+         * Gets the height of the accordion if it has been expanded beyond its original height
+         * If there is no "fullHeight" data attribute value set yet, a height value must be passed in
+         * in order to set the height for storage reasons
+         * @param height
+         * @returns {Number}
+         */
+        this.fullHeight = function (height) {
             var $child = $(this).closestChild('.mobile-accordion-list-items'),
-                ret = $child.data('expandedHeight');
+                ret = $child.data('fullHeight');
             if (ret) {
                 return ret;
             }
             if (arguments.length === 2) {
-                $child.data('expandedHeight', height);
+                $child.data('fullHeight', height);
             }
             return height;
         };
 
+        /**
+         * Changes the height of accordion
+         * @param height
+         * @returns {*}
+         */
         this.changeHeight = function (height) {
             $(this).closestChild('.mobile-accordion-list-items').height(height);
             return api;
@@ -424,7 +453,6 @@
          * - if all else fails, throw an error
          */
         if (api[method]) {
-            console.log(method, ' :: ', typeof api[method])
             if (typeof api[method] === 'function') {
                 return api[method].apply(api, [].slice.call( arguments, 1 ));
             }
@@ -432,7 +460,7 @@
         } else if ( typeof method === 'object' || !method ) {
             return init.apply(api, arguments);
         } else {
-            $.error( 'Method ' + method + ' does not exist on jQuery.tooltip' );
+            $.error( 'Method ' + method + ' does not exist on jQuery.mobileAccordionList' );
         }
 
         return this;
