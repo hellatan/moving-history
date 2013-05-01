@@ -29,96 +29,156 @@
  */
 (function ($) {
     "use strict";
-    $.fn.mobileAccordionList = function (settings) {
-        var api = this,
-            defaults = {
-                allowAllOpened: false,
-                baseClass: '.mobile-accordion-list',
-                defaultTrigger: null,
-                // having the parent class allows to search for some sort of ID
-                parentClass: null,
-                path: null,
-                elements: {
-                    triggerTag: 'span' // this case is when a link is inside the accordion trigger
-                },
-                storageSettings: {
-                    prefix: 'accordion-list-status',
-                    // override this with dibs.utils.localStorage
-                    // use the "storage.method" property if trying to
-                    // remember the user state of the accordion
-                    method: null// window.localStorage || $.cookie
-                },
-                deviceWidths: {
-                    // just going to hardcode these dimensions for now
-                    mobile: 568,
-                    tablet: 1024
-                },
-                storage: {}
-            },
-            events = {
-                accordionUpdate: 'accordion:update-items',
-                accordionClicked: 'accordion:clicked'
-            },
-            prevItems = {
-                $masterHead: [],
-                $heads: []
-            },
-            storage = {},
-            options = $.extend(true, defaults, settings),
-            windowW = $(window).width(),
-            deviceType = windowW <= options.deviceWidths.mobile ? 'mobile' : windowW > options.deviceWidths.tablet ? 'desktop' : 'tablet',
-            $allItems = $('.mobile-accordion-list-items');
 
-        /**
-         * A wrapper around the options.storageSettings.method value passed in
-         * This will support localStorage, cookies, and private variable references
-         */
-        var storageMethod = (function  () {
-            var getItem, setItem;
-            if ((options.storageSettings.method && options.storageSettings.method.getItem)) {
-                // browser has localStorage
-                getItem = function (id) {
-                    return options.storageSettings.method.getItem.call(options.storageSettings.method, id);
-                };
-                setItem = function (id, state) {
-                    options.storageSettings.method.setItem.call(options.storageSettings.method, id, state);
-                };
-            } else if (typeof options.storageSettings.method === 'function') {
-                // should be the $.cookie method
-                getItem = function (id) {
-                    return options.storageSettings.method(id);
-                };
-                setItem = function (id, state) {
-                    options.storageSettings.method(id, state);
-                };
-            } else {
-                // no localStorage and no $.cookie plugin
-                getItem = function (id) {
-                    return storage[id];
-                };
-                setItem = function (id, state) {
-                    if (!storage[id]) {
-                        storage[id] = {};
-                    }
-                    storage[id].state = state;
-                };
-            }
-            return  {
-                getItem: getItem,
-                setItem: setItem
+
+    var defaults = {
+            allowAllOpened: false,
+            baseClass: '.mobile-accordion-list',
+            defaultTrigger: null,
+            // having the parent class allows to search for some sort of ID
+            parentClass: null,
+            path: null,
+            classes: {
+                expanded: "is-expanded",
+                collapsed: "is-collapsed"
+            },
+            elements: {
+                triggerTag: 'span' // this case is when a link is inside the accordion trigger
+            },
+            storageSettings: {
+                prefix: 'accordion-list-status',
+                // override this with dibs.utils.localStorage
+                // use the "storage.method" property if trying to
+                // remember the user state of the accordion
+                method: null// window.localStorage || $.cookie
+            },
+            deviceWidths: {
+                // just going to hardcode these dimensions for now
+                mobile: 568,
+                tablet: 1024
+            },
+            storage: {}
+        },
+        events = {
+            accordionUpdate: 'accordion:update-items',
+            accordionClicked: 'accordion:clicked'
+        },
+        prevItems = {
+            $masterHead: [],
+            $heads: []
+        },
+        storage = {},
+        period_reg = /^\./,
+        windowW = $(window).width(),
+        $allItems = $('.mobile-accordion-list-items'),
+        $listItems, options, deviceType,
+        expanded, collapsed,
+        _expanded, _collapsed;
+
+    /**
+     * A wrapper around the options.storageSettings.method value passed in
+     * This will support localStorage, cookies, and private variable references
+     */
+    var storageMethod = function  (options) {
+        if (!options) {
+            return;
+        }
+        var getItem, setItem;
+        if ((options.storageSettings.method && options.storageSettings.method.getItem)) {
+            // browser has localStorage
+            getItem = function (id) {
+                return options.storageSettings.method.getItem.call(options.storageSettings.method, id);
             };
-        })();
+            setItem = function (id, state) {
+                options.storageSettings.method.setItem.call(options.storageSettings.method, id, state);
+            };
+        } else if (typeof options.storageSettings.method === 'function') {
+            // should be the $.cookie method
+            getItem = function (id) {
+                return options.storageSettings.method(id);
+            };
+            setItem = function (id, state) {
+                options.storageSettings.method(id, state);
+            };
+        } else {
+            // no localStorage and no $.cookie plugin
+            getItem = function (id) {
+                return storage[id];
+            };
+            setItem = function (id, state) {
+                if (!storage[id]) {
+                    storage[id] = {};
+                }
+                storage[id].state = state;
+            };
+        }
+        return  {
+            getItem: getItem,
+            setItem: setItem
+        };
+    };
 
-        function init() {
+
+    /**
+     * Similar to jQuery's `.closest()` method, but finding the closest child instead
+     * This is currently here since the .mobileAccordionList references this plugin
+     * @param filter {Mixed?} Supposed to be the same arguments as `.closest()`? (need to look into this)
+     * @returns {*}
+     */
+    $.fn.closestChild = function(filter) {
+        var $currentSet = this, // Current place
+            $found;
+        while ($currentSet.length) {
+            $found = $currentSet.filter(filter);
+            if ($found.length) {
+                // At least one match: break loop
+                break;
+            }
+            // Get all children of the current set
+            $currentSet = $currentSet.children();
+        }
+        return $found.first(); // Return first match of the collection
+    }
+
+    /**
+     * @param method {Object|String} Optional
+     * - if Object, then it `init`s the plugin
+     * - if String, then it looks for the method or property attached to the plugin
+     * @returns {*}
+     */
+    $.fn.mobileAccordionList = function (method) {
+        var api = this;
+
+        function init(settings) {
+            options = $.extend(true, defaults, settings);
+            deviceType = windowW <= options.deviceWidths.mobile ? 'mobile' : windowW > options.deviceWidths.tablet ? 'desktop' : 'tablet';
+            storageMethod = storageMethod(options);
+
+            options._classes = {};
+            var klasses = options.classes;
+            for (var p in klasses) {
+                if (options.classes.hasOwnProperty(p)) {
+                    var klass = klasses[p];
+                    if (!period_reg.test(klass)) {
+                        options._classes[p] = '.' + klass;
+                    }
+                }
+            }
+
+            expanded = options.classes.expanded;
+            collapsed = options.classes.collapsed;
+            _expanded = options._classes.expanded;
+            _collapsed = options._classes.collapsed;
+
             api.each(function (i, a) {
                 var $this = $(this),
                     data = $this.data(),
                     id = $this.prop('id'),
                     $listHead = $this.find('.mobile-accordion-list-head'),
-                    isExpanded = $listHead.hasClass('is-expanded'),
-                    state = isExpanded ? 'is-expanded' : 'is-collapsed',
+                    isExpanded = $listHead.hasClass(expanded),
+                    state = isExpanded ? expanded : collapsed,
                     storageId = id,
-                    parentId, storedState, $listItems, height, clickedStoredState;
+                    parentId, storedState, height, clickedStoredState;
 
                 if (options.parentClass) {
                     parentId = $this.closest('.' + options.parentClass).prop('id');
@@ -163,24 +223,26 @@
                     storageMethod.setItem(storageId, state);
                 } else {
                     if (storedState !== state) {
-                        if (storedState === 'is-expanded') {
-                            $listHead.removeClass('is-collapsed').addClass('is-expanded');
-                            $listItems.height(height).removeClass('is-collapsed').addClass('is-expanded');
+                        if (storedState === expanded) {
+                            $listHead.removeClass(collapsed).addClass(expanded);
+                            $listItems.data('collapsedHeight', height).height(height).removeClass(collapsed).addClass(expanded);
                         } else {
-                            $listHead.removeClass('is-expanded').addClass('is-collapsed');
-                            $listItems.height(height).removeClass('is-expanded').addClass('is-collapsed').height(0);
+                            $listHead.removeClass(expanded).addClass(collapsed);
+                            $listItems.height(height).removeClass(expanded).addClass(collapsed).height(0);
                         }
                         api.fireEvent(events.accordionUpdate, null, $listHead, storedState);
                     }
                     state = storedState;
                 }
 
+                console.log('$list items: ', $listItems);
+
                 if (deviceType === 'desktop') {
                     clickedStoredState = storageMethod.getItem(storageId + ':clicked');
-                    if (!clickedStoredState && state === 'is-collapsed') {
-                        $listHead.removeClass('is-collapsed').addClass('is-expanded');
-                        $listHead.find('.facet-header-triangle.triangle.right').removeClass('right').addClass('down');
-                        $listItems.height(height).removeClass('is-collapsed').addClass('is-expanded');
+                    if (!clickedStoredState && state === collapsed) {
+                        $listHead.removeClass(collapsed).addClass(expanded);
+                        $listItems.data('collapsedHeight', height).height(height).removeClass(collapsed).addClass(expanded);
+                        api.fireEvent(events.accordionUpdate, null, $listHead, expanded);
                     }
                 }
 
@@ -198,13 +260,13 @@
                 if ($master.length) {
                     var $list = $master.find('.mobile-accordion-list'),
                         height = $list.children('.mobile-accordion-measuring-wrap').outerHeight(true),
-                        isExpanded = $list.hasClass('is-expanded');
+                        isExpanded = $list.hasClass(expanded);
                     if (isExpanded) {
-                        $master.removeClass('is-expanded').addClass('is-collapsed');
-                        $list.height(height).removeClass('is-expanded').addClass('is-collapsed').height(0);
+                        $master.removeClass(expanded).addClass(collapsed);
+                        $list.height(height).removeClass(expanded).addClass(collapsed).height(0);
                     } else {
-                        $master.removeClass('is-collapsed').addClass('is-expanded');
-                        $list.height(height).removeClass('is-collapsed').addClass('is-expanded');
+                        $master.removeClass(collapsed).addClass(expanded);
+                        $list.height(height).removeClass(collapsed).addClass(expanded);
                     }
                 }
                 return false;
@@ -223,8 +285,8 @@
                     if ($(e.target).parent(options.elements.triggerTag).length) {
                         if (e.target.nodeName.toLowerCase() === 'a') {
                             // this takes care of any links nested inside the trigger
-                            // since you cannot nest anchor tags inside anchor tags, this works out
-                            // solves for the "clear" link
+                            // since you cannot nest anchor tags inside anchor tags,
+                            // this works out solves for the "clear" link
                             return;
                         }
                     }
@@ -233,16 +295,16 @@
                 if (!options.allowAllOpened) {
                     $allItems.each(function () {
                         var $thisItem = $(this),
-                            $par = $thisItem.parent('.is-expanded');
-                        $thisItem.removeClass('is-expanded').addClass('is-collapsed').height(0);
+                            $par = $thisItem.parent(_expanded);
+                        $thisItem.removeClass(expanded).addClass(collapsed).height(0);
                         if ($par.length && !$rootItem.data('isExpanded')) {
                             // need to make sure that $par isn't the same as prevItems.$heads
-                            $par.removeClass('is-expanded').addClass('is-collapsed');
+                            $par.removeClass(expanded).addClass(collapsed);
                         }
                     });
                     $heads.each(function () {
-                        if (prevItems.$heads.length && !prevItems.$heads.hasClass('is-expanded')) {
-                            $(this).removeClass('is-expanded').addClass('is-collapsed');
+                        if (prevItems.$heads.length && !prevItems.$heads.hasClass(expanded)) {
+                            $(this).removeClass(expanded).addClass(collapsed);
                         }
                     });
                 }
@@ -250,39 +312,39 @@
                 measuringHeight = $items.find('.mobile-accordion-measuring-wrap').outerHeight(true);
                 itemHeight = $this.outerHeight(true);
 
-                if ($curHead.hasClass('is-collapsed')) {
-                    $curHead.removeClass('is-collapsed').addClass('is-expanded');
+                if ($curHead.hasClass(collapsed)) {
+                    $curHead.removeClass(collapsed).addClass(expanded);
                     if ($curMaster.length) {
-                        if ($curMaster.hasClass('is-expanded')) {
+                        if ($curMaster.hasClass(expanded)) {
                             curMasterHeight = $curMaster.height();
-                            $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight + (measuringHeight - itemHeight));
+                            $curMaster.find('.mobile-accordion-list' + _expanded).height(curMasterHeight + (measuringHeight - itemHeight));
                         }
                     }
                     // give it a height before applying the classes otherwise the first animation
                     // will not happen and the accordion will just snap in but on subsequent expands
                     // it will animate since there is a height assigned to it
                     // this works fine in chrome unlike the case stated below
-                    $items.height(measuringHeight).removeClass('is-collapsed').addClass('is-expanded').height(measuringHeight);
+                    $items.height(measuringHeight).removeClass(collapsed).addClass(expanded).height(measuringHeight);
                     prevItems.$heads = $curHead;
                     $this.data('isExpanded', true);
-                    facetState = 'is-expanded';
+                    facetState = expanded;
                 } else {
-                    $curHead.removeClass('is-expanded').addClass('is-collapsed');
+                    $curHead.removeClass(expanded).addClass(collapsed);
                     if ($curMaster.length) {
-                        if ($curMaster.hasClass('is-expanded')) {
+                        if ($curMaster.hasClass(expanded)) {
                             curMasterHeight = $curMaster.height();
-                            $curMaster.find('.mobile-accordion-list.is-expanded').height(curMasterHeight - (measuringHeight + itemHeight));
+                            $curMaster.find('.mobile-accordion-list' + _expanded).height(curMasterHeight - (measuringHeight + itemHeight));
                         }
                     }
                     // the first .height() function is set here so that initially "is-expanded" facets
                     // will be able to animate correctly once the second .height(0) function is called
                     // otherwise the initial closing/collapsing click just snaps and doesn't animate
                     // this seems to be fine in firefox but does not apply to chrome
-                    $items.height($items.outerHeight(true)).removeClass('is-expanded').addClass('is-collapsed').height(0);
+                    $items.height($items.outerHeight(true)).removeClass(expanded).addClass(collapsed).height(0);
                     prevItems.$heads = [];
                     // this means the user has clicked the same accordion trigger twice in a row - once to open it, the second time to close it
                     $this.data('isExpanded', false);
-                    facetState = 'is-collapsed';
+                    facetState = collapsed;
                 }
                 api.fireEvent(events.accordionUpdate, e, $this, facetState);
                 // this ensures this is an actual click for tracking purposes
@@ -321,8 +383,59 @@
             }
         };
 
-        init();
+        this.height = function () {
+            return $(this).closestChild('.mobile-accordion-measuring-wrap').height();
+        };
+
+        this.collapsedHeight = function() {
+            var $child = $(this).closestChild('.mobile-accordion-list-items'),
+                ret = $child.data('collapsedHeight');
+            if (!ret) { // this case should never happen, but just in case...
+                ret = $child.closestChild('.mobile-accordion-measuring-wrap').outerHeight(true);
+                $child.data('collapsedHeight', ret);
+            }
+            return ret;
+        };
+
+        this.expandedHeight = function (height) {
+            var $child = $(this).closestChild('.mobile-accordion-list-items'),
+                ret = $child.data('expandedHeight');
+            if (ret) {
+                return ret;
+            }
+            if (arguments.length === 2) {
+                $child.data('expandedHeight', height);
+            }
+            return height;
+        };
+
+        this.changeHeight = function (height) {
+            $(this).closestChild('.mobile-accordion-list-items').height(height);
+            return api;
+        };
+
+        /**
+         * recommended jQuery plugin structure in order to expose public methods
+         * scenarios:
+         * - if `settings` is a string...
+         * -- and results in a method on `this` object, return and apply any arguments (minus the method name) to the resulting method
+         * -- otherwise return the property value
+         * - if `settings` is an object or there is no `settings` argument passed in, call the `init` method and apply all arguments
+         * - if all else fails, throw an error
+         */
+        if (api[method]) {
+            console.log(method, ' :: ', typeof api[method])
+            if (typeof api[method] === 'function') {
+                return api[method].apply(api, [].slice.call( arguments, 1 ));
+            }
+            return api[method];
+        } else if ( typeof method === 'object' || !method ) {
+            return init.apply(api, arguments);
+        } else {
+            $.error( 'Method ' + method + ' does not exist on jQuery.tooltip' );
+        }
 
         return this;
     };
+
 })(jQuery);
