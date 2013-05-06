@@ -10,7 +10,7 @@ var addToHomeConfig = {
     lifespan:2000000000,
     expire:0,
     touchIcon:true,
-    message:'Tap `%icon` then Select "Add to Home Screen to add.'
+    message:'Tap %icon then Select "Add to Home Screen" to add.'
 };
 
 
@@ -30,6 +30,7 @@ var addToHome = (function (w) {
 		isReturningVisitor,
 		balloon,
         balloonHeader,
+        balloonContent,
 		overrideChecks,
 
 		positionInterval,
@@ -137,6 +138,8 @@ var addToHome = (function (w) {
         balloonHeader = document.createElement('div');
         balloonHeader.id = 'addToHomeScreenHeader';
         balloonHeader.innerHTML = 'Install This Web App:';
+        balloonContent = document.createElement('div');
+        balloonContent.id = 'addToHomeScreenContent';
         balloon.appendChild(balloonHeader);
 		// Localize message
 		if ( options.message in intl ) {		// You may force a language despite the user's locale
@@ -158,11 +161,12 @@ var addToHome = (function (w) {
 		}
 
 		balloon.className = (isIPad ? 'addToHomeIpad' : 'addToHomeIphone') + (touchIcon ? ' addToHomeWide' : '');
-		balloon.innerHTML += touchIcon +
+		balloonContent.innerHTML += touchIcon +
 			options.message.replace('%device', platform).replace('%icon', OSVersion >= 4.2 ? '<span class="addToHomeShare"></span>' : '<span class="addToHomePlus">+</span>') +
 			(options.arrow ? '<span class="addToHomeArrow"></span>' : '') +
 			(options.closeButton ? '<span class="addToHomeClose">\u00D7</span>' : '');
 
+		balloon.appendChild(balloonContent);
 		document.body.appendChild(balloon);
 
 		// Add the close action
