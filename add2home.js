@@ -140,6 +140,7 @@ var addToHome = (function (w) {
         balloonHeader.innerHTML = 'Install This Web App:';
         balloonContent = document.createElement('div');
         balloonContent.id = 'addToHomeScreenContent';
+        balloonContent.className = 'cf';
         balloon.appendChild(balloonHeader);
 		// Localize message
 		if ( options.message in intl ) {		// You may force a language despite the user's locale
