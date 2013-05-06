@@ -192,7 +192,7 @@ var addToHome = (function (w) {
 			}
 
 			balloon.style.top = startY + options.bottomOffset + 'px';
-			balloon.style.left = startX + iPadXShift - Math.round(balloon.offsetWidth / 2) + 'px';
+			balloon.style.left = 50 + startX + iPadXShift - Math.round(balloon.offsetWidth / 2) + 'px';
 
 			switch ( options.animationIn ) {
 				case 'drop':
