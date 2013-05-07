@@ -7,10 +7,10 @@ var addToHomeConfig = {
     animationIn: 'fade',
     animationOut: 'fade',
     startDelay:0,
-    lifespan:2000000000,
-    expire:0,
+    headerText:'Add 1stdibs to your homescreen',
+    returningVisitor: false,
     touchIcon:true,
-    message:'Tap %icon then Select "Add to Home Screen" to add.'
+    message:'Tap %icon then select "Add to Home Screen" now.'
 };
 
 
@@ -137,7 +137,7 @@ var addToHome = (function (w) {
 		balloon.style.cssText += 'left:-9999px;-webkit-transition-property:-webkit-transform,opacity;-webkit-transition-duration:0;-webkit-transform:translate3d(0,0,0);position:' + (OSVersion < 5 ? 'absolute' : 'fixed');
         balloonHeader = document.createElement('div');
         balloonHeader.id = 'addToHomeScreenHeader';
-        balloonHeader.innerHTML = 'Install This Web App:';
+        balloonHeader.innerHTML = options.headerText ? options.headerText : 'Install This Web App:';
         balloonContent = document.createElement('div');
         balloonContent.id = 'addToHomeScreenContent';
         balloonContent.className = 'cf';
