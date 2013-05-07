@@ -27,10 +27,7 @@ var addToHome = function (w, addToHomeConfig) {
 		startX = 0,
 		startY = 0,
         hasClosed = 0,
-		lastVisit = 0,
-		isExpired,
-		isSessionActive,
-		isReturningVisitor,
+        currentUri,
 		balloon,
         balloonHeader,
         balloonContent,
@@ -87,9 +84,6 @@ var addToHome = function (w, addToHomeConfig) {
 
 	function loaded () {
 
-		if ( !isReturningVisitor ) w.localStorage.setItem('addToHome', Date.now());
-		else if ( options.expire && isExpired ) w.localStorage.setItem('addToHome', Date.now() + options.expire * 60000);
-
 		if ( !overrideChecks && hasClosed ) return;
 
 		var touchIcon = '',
@@ -130,6 +124,7 @@ var addToHome = function (w, addToHomeConfig) {
 
 		if ( !isIPad && OSVersion >= 6 ) window.addEventListener('orientationchange', orientationCheck, false);
 
+        addTrackingVariables();
 		setTimeout(show, options.startDelay);
 	}
 
@@ -260,6 +255,7 @@ var addToHome = function (w, addToHomeConfig) {
 		balloon.style.opacity = opacity;
 		balloon.style.webkitTransitionDuration = duration;
 		balloon.style.webkitTransform = 'translate3d(' + posX + 'px,' + posY + 'px,0)';
+        removeTrackingVariables();
 	}
 
 
@@ -306,13 +302,39 @@ var addToHome = function (w, addToHomeConfig) {
 		balloon.style.marginLeft = -Math.round(balloon.offsetWidth / 2) - ( w.orientation%180 && OSVersion >= 6 ? 40 : 0 ) + 'px';
 	}
 
+    function updateQueryStringParameter(uri, key, value) {
+        var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i");
+        separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+
+    function addTrackingVariables() {
+        var parsedUri = dibs.parseUri(w.location.pathname),
+            newUri;
+        currentUri = w.location.pathname;
+        newUri = updateQueryStringParameter(parsedUri.path + '?' + parsedUri.query, 'utm_source', 'web-app' );
+        newUri = updateQueryStringParameter(newUri, 'utm_medium', 'mobile-app' );
+        newUri = updateQueryStringParameter(newUri, 'utm_campaign', 'ios' );
+
+        w.history.replaceState({}, '', newUri);
+    }
+    function removeTrackingVariables() {
+        w.history.replaceState({}, '', currentUri);
+    }
+
 	// Bootstrap!
 	init();
 
 	return {
 		show: manualShow,
 		close: close,
-		reset: reset
+		reset: reset,
+        clicked: clicked
 	};
 }
     $(function () {
