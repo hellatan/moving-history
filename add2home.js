@@ -49,9 +49,6 @@ var addToHome = function (w, addToHomeConfig) {
 		// Preliminary check, all further checks are performed on iDevices only
 		if ( !isIDevice ) return;
 
-		var now = Date.now(),
-			i;
-
 		// Merge local with global options
 		if ( addToHomeConfig ) {
 			for ( i in addToHomeConfig ) {
@@ -79,7 +76,18 @@ var addToHome = function (w, addToHomeConfig) {
 		if ( !overrideChecks && hasClosed ) return;
 
 		var touchIcon = '',
-			platform = nav.platform.split(' ')[0];
+			platform = nav.platform.split(' ')[0],
+            parsedUri = dibs.parseUri(w.location.href);
+
+        // If user is launching from the bookmark (the tracking vars will be present)
+        // do not show the prompt and add the cookie to prevent it from showing.
+        if(
+            parsedUri.queryKey.utm_source === 'web-app' &&
+            parsedUri.queryKey.utm_medium === 'mobile-app' &&
+            parsedUri.queryKey.utm_campaign === 'ios'
+        ) {
+            $.cookie('add2home-closed', 1,{ expires: 30 } )
+        }
 
 		balloon = document.createElement('div');
 		balloon.id = 'addToHomeScreen';
@@ -309,8 +317,8 @@ var addToHome = function (w, addToHomeConfig) {
 	}
 
     function updateQueryStringParameter(uri, key, value) {
-        var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i");
-        separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i"),
+            separator = uri.indexOf('?') !== -1 ? "&" : "?";
         if (uri.match(re)) {
             return uri.replace(re, '$1' + key + "=" + value + '$2');
         }
@@ -323,7 +331,8 @@ var addToHome = function (w, addToHomeConfig) {
         var parsedUri = dibs.parseUri(w.location.pathname),
             newUri;
         currentUri = w.location.pathname;
-        newUri = updateQueryStringParameter(parsedUri.path + '?' + parsedUri.query, 'utm_source', 'web-app' );
+        newUri = parsedUri.query ? parsedUri.path + '?' + parsedUri.query : parsedUri.path;
+        newUri = updateQueryStringParameter(newUri, 'utm_source', 'web-app' );
         newUri = updateQueryStringParameter(newUri, 'utm_medium', 'mobile-app' );
         newUri = updateQueryStringParameter(newUri, 'utm_campaign', 'ios' );
 
