@@ -5,16 +5,6 @@
 
 (function($) {
 
-var addToHomeConfig = {
-    animationIn: 'fade',
-    animationOut: 'fade',
-    startDelay:0,
-    headerText:'Add 1stdibs to your homescreen',
-    returningVisitor: false,
-    touchIcon:true,
-    message:'Tap %icon then select "Add to Home Screen" now.'
-};
-
 
 var addToHome = function (w, addToHomeConfig) {
 	var nav = w.navigator,
@@ -39,18 +29,20 @@ var addToHome = function (w, addToHomeConfig) {
 		options = {
 			autostart: true,			// Automatically open the balloon
 			returningVisitor: false,	// Show the balloon to returning visitors only (setting this to true is HIGHLY RECCOMENDED)
-			animationIn: 'drop',		// drop || bubble || fade
+			animationIn: 'fade',		// drop || bubble || fade
 			animationOut: 'fade',		// drop || bubble || fade
 			startDelay: 2000,			// 2 seconds from page load before the balloon appears
 			lifespan: 15000,			// 15 seconds before it is automatically destroyed
 			bottomOffset: 14,			// Distance of the balloon from bottom
 			expire: 0,					// Minutes to wait before showing the popup again (0 = always displayed)
-			message: '',				// Customize your message or force a language ('' = automatic)
-			touchIcon: false,			// Display the touch icon
+			message: 'Tap %icon then select "Add to Home Screen" now.',
+            headerText:'Add 1stdibs to your homescreen', // Header message
+			touchIcon: true,			// Display the touch icon
 			arrow: true,				// Display the balloon arrow
 			closeButton: true,			// Let the user close the balloon
 			iterations: 100,			// Internal/debug use
-            addTo: 'body'               // Append popup to this element
+            addTo: 'body',               // Append popup to this element
+            trackingCategory: 'Mobile prompts'
 		};
 
 	function init () {
@@ -124,6 +116,13 @@ var addToHome = function (w, addToHomeConfig) {
 
 		if ( !isIPad && OSVersion >= 6 ) window.addEventListener('orientationchange', orientationCheck, false);
 
+        w._gas.push([
+            '_trackEvent',
+            options.trackingCategory,
+            'Web App - Displayed prompt to install',
+            'ad text: ' + options.headerText + ', ' + options.message,
+            true
+        ]);
         addTrackingVariables();
 		setTimeout(show, options.startDelay);
 	}
@@ -261,6 +260,13 @@ var addToHome = function (w, addToHomeConfig) {
 
 	function clicked () {
         $.cookie('add2home-closed', 1,{ expires: 30 } )
+        w._gas.push([
+            '_trackEvent',
+            options.trackingCategory,
+            'Web App - User closed prompt to install',
+            'ad text: ' + options.headerText + ', ' + options.message,
+            true
+        ]);
 		close();
 	}
 
@@ -342,7 +348,7 @@ var addToHome = function (w, addToHomeConfig) {
         $.publish('addToHome:loaded');
     });
 
-    return addToHome(window, addToHomeConfig);
+    return addToHome(window, {});
 
 }(jQuery));
 
