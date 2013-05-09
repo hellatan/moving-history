@@ -80,13 +80,14 @@ var addToHome = function (w, addToHomeConfig) {
             parsedUri = dibs.parseUri(w.location.href);
 
         // If user is launching from the bookmark (the tracking vars will be present)
-        // do not show the prompt and add the cookie to prevent it from showing.
+        // do not show the prompt and add the cookie to prevent it from showing again.
         if(
             parsedUri.queryKey.utm_source === 'web-app' &&
             parsedUri.queryKey.utm_medium === 'mobile-app' &&
             parsedUri.queryKey.utm_campaign === 'ios'
         ) {
             $.cookie('add2home-closed', 1,{ expires: 30 } )
+            return;
         }
 
 		balloon = document.createElement('div');
