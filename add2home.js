@@ -3,18 +3,10 @@
  * Released under MIT license, http://cubiq.org/license
  */
 
-var addToHomeConfig = {
-    animationIn: 'fade',
-    animationOut: 'fade',
-    startDelay:0,
-    headerText:'Add 1stdibs to your homescreen',
-    returningVisitor: false,
-    touchIcon:true,
-    message:'Tap %icon then select "Add to Home Screen" now.'
-};
+(function($) {
 
 
-var addToHome = (function (w) {
+var addToHome = function (w, addToHomeConfig) {
 	var nav = w.navigator,
 		isIDevice = 'platform' in nav && (/iphone|ipod|ipad/gi).test(nav.platform),
 		isIPad,
@@ -24,11 +16,10 @@ var addToHome = (function (w) {
 		OSVersion,
 		startX = 0,
 		startY = 0,
-		lastVisit = 0,
-		isExpired,
-		isSessionActive,
-		isReturningVisitor,
+        hasClosed = 0,
+        currentUri,
 		balloon,
+        originalTitle,
         balloonHeader,
         balloonContent,
 		overrideChecks,
@@ -39,65 +30,33 @@ var addToHome = (function (w) {
 		options = {
 			autostart: true,			// Automatically open the balloon
 			returningVisitor: false,	// Show the balloon to returning visitors only (setting this to true is HIGHLY RECCOMENDED)
-			animationIn: 'drop',		// drop || bubble || fade
+			animationIn: 'fade',		// drop || bubble || fade
 			animationOut: 'fade',		// drop || bubble || fade
 			startDelay: 2000,			// 2 seconds from page load before the balloon appears
 			lifespan: 15000,			// 15 seconds before it is automatically destroyed
 			bottomOffset: 14,			// Distance of the balloon from bottom
 			expire: 0,					// Minutes to wait before showing the popup again (0 = always displayed)
-			message: '',				// Customize your message or force a language ('' = automatic)
-			touchIcon: false,			// Display the touch icon
+			message: 'Tap %icon then select "Add to Home Screen" now.',
+            headerText:'Add 1stdibs to your homescreen', // Header message
+			touchIcon: true,			// Display the touch icon
 			arrow: true,				// Display the balloon arrow
-			hookOnLoad: true,			// Should we hook to onload event? (really advanced usage)
 			closeButton: true,			// Let the user close the balloon
-			iterations: 100				// Internal/debug use
-		},
-
-		intl = {
-			ar:    '<span dir="rtl">قم بتثبيت هذا التطبيق على <span dir="ltr">%device:</span>انقر<span dir="ltr">%icon</span> ،<strong>ثم اضفه الى الشاشة الرئيسية.</strong></span>',
-			ca_es: 'Per instal·lar aquesta aplicació al vostre %device premeu %icon i llavors <strong>Afegir a pantalla d\'inici</strong>.',
-			cs_cz: 'Pro instalaci aplikace na Váš %device, stiskněte %icon a v nabídce <strong>Přidat na plochu</strong>.',
-			da_dk: 'Tilføj denne side til din %device: tryk på %icon og derefter <strong>Føj til hjemmeskærm</strong>.',
-			de_de: 'Installieren Sie diese App auf Ihrem %device: %icon antippen und dann <strong>Zum Home-Bildschirm</strong>.',
-			el_gr: 'Εγκαταστήσετε αυτήν την Εφαρμογή στήν συσκευή σας %device: %icon μετά πατάτε <strong>Προσθήκη σε Αφετηρία</strong>.',
-			en_us: 'Install this web app on your %device: tap %icon and then <strong>Add to Home Screen</strong>.',
-			es_es: 'Para instalar esta app en su %device, pulse %icon y seleccione <strong>Añadir a pantalla de inicio</strong>.',
-			fi_fi: 'Asenna tämä web-sovellus laitteeseesi %device: paina %icon ja sen jälkeen valitse <strong>Lisää Koti-valikkoon</strong>.',
-			fr_fr: 'Ajoutez cette application sur votre %device en cliquant sur %icon, puis <strong>Ajouter à l\'écran d\'accueil</strong>.',
-			he_il: '<span dir="rtl">התקן אפליקציה זו על ה-%device שלך: הקש %icon ואז <strong>הוסף למסך הבית</strong>.</span>',
-			hr_hr: 'Instaliraj ovu aplikaciju na svoj %device: klikni na %icon i odaberi <strong>Dodaj u početni zaslon</strong>.',
-			hu_hu: 'Telepítse ezt a web-alkalmazást az Ön %device-jára: nyomjon a %icon-ra majd a <strong>Főképernyőhöz adás</strong> gombra.',
-			it_it: 'Installa questa applicazione sul tuo %device: premi su %icon e poi <strong>Aggiungi a Home</strong>.',
-			ja_jp: 'このウェブアプリをあなたの%deviceにインストールするには%iconをタップして<strong>ホーム画面に追加</strong>を選んでください。',
-			ko_kr: '%device에 웹앱을 설치하려면 %icon을 터치 후 "홈화면에 추가"를 선택하세요',
-			nb_no: 'Installer denne appen på din %device: trykk på %icon og deretter <strong>Legg til på Hjem-skjerm</strong>',
-			nl_nl: 'Installeer deze webapp op uw %device: tik %icon en dan <strong>Voeg toe aan beginscherm</strong>.',
-			pl_pl: 'Aby zainstalować tę aplikacje na %device: naciśnij %icon a następnie <strong>Dodaj jako ikonę</strong>.',
-			pt_br: 'Instale este aplicativo em seu %device: aperte %icon e selecione <strong>Adicionar à Tela Inicio</strong>.',
-			pt_pt: 'Para instalar esta aplicação no seu %device, prima o %icon e depois o <strong>Adicionar ao ecrã principal</strong>.',
-			ru_ru: 'Установите это веб-приложение на ваш %device: нажмите %icon, затем <strong>Добавить в «Домой»</strong>.',
-			sv_se: 'Lägg till denna webbapplikation på din %device: tryck på %icon och därefter <strong>Lägg till på hemskärmen</strong>.',
-			th_th: 'ติดตั้งเว็บแอพฯ นี้บน %device ของคุณ: แตะ %icon และ <strong>เพิ่มที่หน้าจอโฮม</strong>',
-			tr_tr: 'Bu uygulamayı %device\'a eklemek için %icon simgesine sonrasında <strong>Ana Ekrana Ekle</strong> düğmesine basın.',
-			uk_ua: 'Встановіть цей веб сайт на Ваш %device: натисніть %icon, а потім <strong>На початковий екран</strong>.',
-			zh_cn: '您可以将此应用程式安装到您的 %device 上。请按 %icon 然后点选<strong>添加至主屏幕</strong>。',
-			zh_tw: '您可以將此應用程式安裝到您的 %device 上。請按 %icon 然後點選<strong>加入主畫面螢幕</strong>。'
+			iterations: 100,			// Internal/debug use
+            addTo: 'body',               // Append popup to this element
+            trackingCategory: 'Mobile prompts',
+            appTitle: '1stdibs'
 		};
 
 	function init () {
 		// Preliminary check, all further checks are performed on iDevices only
 		if ( !isIDevice ) return;
 
-		var now = Date.now(),
-			i;
-
 		// Merge local with global options
-		if ( w.addToHomeConfig ) {
-			for ( i in w.addToHomeConfig ) {
-				options[i] = w.addToHomeConfig[i];
+		if ( addToHomeConfig ) {
+			for ( i in addToHomeConfig ) {
+				options[i] = addToHomeConfig[i];
 			}
 		}
-		if ( !options.autostart ) options.hookOnLoad = false;
 
 		isIPad = (/ipad/gi).test(nav.platform);
 		isRetina = w.devicePixelRatio && w.devicePixelRatio > 1;
@@ -106,31 +65,32 @@ var addToHome = (function (w) {
 		OSVersion = nav.appVersion.match(/OS (\d+_\d+)/i);
 		OSVersion = OSVersion && OSVersion[1] ? +OSVersion[1].replace('_', '.') : 0;
 
-		lastVisit = +w.localStorage.getItem('addToHome');
+        hasClosed = $.cookie('add2home-closed');
 
-		isSessionActive = w.sessionStorage.getItem('addToHomeSession');
-		isReturningVisitor = options.returningVisitor ? lastVisit && lastVisit + 28*24*60*60*1000 > now : true;
+        if (options.autostart) {
+            loaded();
+        }
 
-		if ( !lastVisit ) lastVisit = now;
-
-		// If it is expired we need to reissue a new balloon
-		isExpired = isReturningVisitor && lastVisit <= now;
-
-		if ( options.hookOnLoad ) w.addEventListener('load', loaded, false);
-		else if ( !options.hookOnLoad && options.autostart ) loaded();
 	}
 
 	function loaded () {
-		w.removeEventListener('load', loaded, false);
 
-		if ( !isReturningVisitor ) w.localStorage.setItem('addToHome', Date.now());
-		else if ( options.expire && isExpired ) w.localStorage.setItem('addToHome', Date.now() + options.expire * 60000);
-
-		if ( !overrideChecks && ( !isSafari || !isExpired || isSessionActive || isStandalone || !isReturningVisitor ) ) return;
+		if ( !overrideChecks && hasClosed ) return;
 
 		var touchIcon = '',
 			platform = nav.platform.split(' ')[0],
-			language = nav.language.replace('-', '_');
+            parsedUri = dibs.parseUri(w.location.href);
+
+        // If user is launching from the bookmark (the tracking vars will be present)
+        // do not show the prompt and add the cookie to prevent it from showing again.
+        if(
+            parsedUri.queryKey.utm_source === 'web-app' &&
+            parsedUri.queryKey.utm_medium === 'mobile-app' &&
+            parsedUri.queryKey.utm_campaign === 'ios'
+        ) {
+            $.cookie('add2home-closed', 1,{ expires: 30 } )
+            return;
+        }
 
 		balloon = document.createElement('div');
 		balloon.id = 'addToHomeScreen';
@@ -142,14 +102,6 @@ var addToHome = (function (w) {
         balloonContent.id = 'addToHomeScreenContent';
         balloonContent.className = 'cf';
         balloon.appendChild(balloonHeader);
-		// Localize message
-		if ( options.message in intl ) {		// You may force a language despite the user's locale
-			language = options.message;
-			options.message = '';
-		}
-		if ( options.message === '' ) {			// We look for a suitable language (defaulted to en_us)
-			options.message = language in intl ? intl[language] : intl['en_us'];
-		}
 
 		if ( options.touchIcon ) {
 			touchIcon = isRetina ?
@@ -168,13 +120,22 @@ var addToHome = (function (w) {
 			(options.closeButton ? '<span class="addToHomeClose">\u00D7</span>' : '');
 
 		balloon.appendChild(balloonContent);
-		document.body.appendChild(balloon);
+		document.querySelector(options.addTo).appendChild(balloon);
 
 		// Add the close action
 		if ( options.closeButton ) balloon.addEventListener('click', clicked, false);
 
 		if ( !isIPad && OSVersion >= 6 ) window.addEventListener('orientationchange', orientationCheck, false);
 
+        w._gas.push([
+            '_trackEvent',
+            options.trackingCategory,
+            'Web App - Displayed prompt to install',
+            'ad text: ' + options.headerText + ', ' + options.message,
+            true
+        ]);
+        addTrackingVariables();
+        setTitle();
 		setTimeout(show, options.startDelay);
 	}
 
@@ -305,12 +266,20 @@ var addToHome = (function (w) {
 		balloon.style.opacity = opacity;
 		balloon.style.webkitTransitionDuration = duration;
 		balloon.style.webkitTransform = 'translate3d(' + posX + 'px,' + posY + 'px,0)';
+        removeTrackingVariables();
+        resetTitle();
 	}
 
 
 	function clicked () {
-		w.sessionStorage.setItem('addToHomeSession', '1');
-		isSessionActive = true;
+        $.cookie('add2home-closed', 1,{ expires: 30 } )
+        w._gas.push([
+            '_trackEvent',
+            options.trackingCategory,
+            'Web App - User closed prompt to install',
+            'ad text: ' + options.headerText + ', ' + options.message,
+            true
+        ]);
 		close();
 	}
 
@@ -352,12 +321,57 @@ var addToHome = (function (w) {
 		balloon.style.marginLeft = -Math.round(balloon.offsetWidth / 2) - ( w.orientation%180 && OSVersion >= 6 ? 40 : 0 ) + 'px';
 	}
 
+    function updateQueryStringParameter(uri, key, value) {
+        var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i"),
+            separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+
+    function addTrackingVariables() {
+        var parsedUri = dibs.parseUri(w.location.pathname),
+            newUri;
+        currentUri = w.location.pathname;
+        newUri = parsedUri.query ? parsedUri.path + '?' + parsedUri.query : parsedUri.path;
+        newUri = updateQueryStringParameter(newUri, 'utm_source', 'web-app' );
+        newUri = updateQueryStringParameter(newUri, 'utm_medium', 'mobile-app' );
+        newUri = updateQueryStringParameter(newUri, 'utm_campaign', 'ios' );
+
+        w.history.replaceState({}, '', newUri);
+    }
+    function removeTrackingVariables() {
+        w.history.replaceState({}, '', currentUri);
+    }
+
+    function setTitle() {
+        originalTitle = w.document.title;
+        w.document.title = options.appTitle;
+    }
+
+    function resetTitle() {
+        w.document.title = originalTitle;
+    }
+
 	// Bootstrap!
 	init();
 
 	return {
 		show: manualShow,
 		close: close,
-		reset: reset
+		reset: reset,
+        clicked: clicked
 	};
-})(window);
+}
+    $(function () {
+        dibs.createNamespace('dibs.addToHome', addToHome);
+        $.publish('addToHome:loaded');
+    });
+
+    return addToHome(window, {});
+
+}(jQuery));
+
