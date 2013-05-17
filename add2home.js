@@ -19,6 +19,7 @@ var addToHome = function (w, addToHomeConfig) {
         hasClosed = 0,
         currentUri,
 		balloon,
+        originalTitle,
         balloonHeader,
         balloonContent,
 		overrideChecks,
@@ -42,7 +43,8 @@ var addToHome = function (w, addToHomeConfig) {
 			closeButton: true,			// Let the user close the balloon
 			iterations: 100,			// Internal/debug use
             addTo: 'body',               // Append popup to this element
-            trackingCategory: 'Mobile prompts'
+            trackingCategory: 'Mobile prompts',
+            appTitle: '1stdibs'
 		};
 
 	function init () {
@@ -133,6 +135,7 @@ var addToHome = function (w, addToHomeConfig) {
             true
         ]);
         addTrackingVariables();
+        setTitle();
 		setTimeout(show, options.startDelay);
 	}
 
@@ -264,6 +267,7 @@ var addToHome = function (w, addToHomeConfig) {
 		balloon.style.webkitTransitionDuration = duration;
 		balloon.style.webkitTransform = 'translate3d(' + posX + 'px,' + posY + 'px,0)';
         removeTrackingVariables();
+        resetTitle();
 	}
 
 
@@ -341,6 +345,15 @@ var addToHome = function (w, addToHomeConfig) {
     }
     function removeTrackingVariables() {
         w.history.replaceState({}, '', currentUri);
+    }
+
+    function setTitle() {
+        originalTitle = w.document.title;
+        w.document.title = options.appTitle;
+    }
+
+    function resetTitle() {
+        w.document.title = originalTitle;
     }
 
 	// Bootstrap!
