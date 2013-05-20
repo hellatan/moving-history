@@ -132,6 +132,7 @@ var addToHome = function (w, addToHomeConfig) {
             options.trackingCategory,
             'Web App - Displayed prompt to install',
             'ad text: ' + options.headerText + ', ' + options.message,
+            null,
             true
         ]);
         addTrackingVariables();
@@ -278,6 +279,7 @@ var addToHome = function (w, addToHomeConfig) {
             options.trackingCategory,
             'Web App - User closed prompt to install',
             'ad text: ' + options.headerText + ', ' + options.message,
+            null,
             true
         ]);
 		close();
