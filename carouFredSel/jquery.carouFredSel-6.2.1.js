@@ -94,7 +94,7 @@
             //	primary size not set for a responsive carousel
             if (opts.responsive)
             {
-                // FIX FOR VERTICAL CAROUSEL
+                // GEDAS - FIX FOR VERTICAL CAROUSEL
                 if (opts.direction === 'up' || opts.direction === 'down') {
                     opts[opts.d['height']] = '100%';
                 } else {
