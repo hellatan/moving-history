@@ -4,7 +4,7 @@
  */
 
 (function($) {
-
+"use strict";
 
 var addToHome = function (w, addToHomeConfig) {
 	var nav = w.navigator,
@@ -27,6 +27,7 @@ var addToHome = function (w, addToHomeConfig) {
 		positionInterval,
 		closeTimeout,
 
+
 		options = {
 			autostart: true,			// Automatically open the balloon
 			returningVisitor: false,	// Show the balloon to returning visitors only (setting this to true is HIGHLY RECCOMENDED)
@@ -44,17 +45,24 @@ var addToHome = function (w, addToHomeConfig) {
 			iterations: 100,			// Internal/debug use
             addTo: 'body',               // Append popup to this element
             trackingCategory: 'Mobile prompts',
-            appTitle: '1stdibs'
+            appTitle: '1stdibs',
+            addedFlagName: 'mobileBookmark', // The query param name to look for to see if user came froma  mobile bookmark
+            addedFlagValue: 'true',  // the query param value to check against
+            addedTrackingCategory: 'Clicks from Mobile Shortcut'
 		};
 
 	function init () {
 		// Preliminary check, all further checks are performed on iDevices only
-		if ( !isIDevice ) return;
+		if ( !isIDevice ) {
+            return;
+        }
 
 		// Merge local with global options
 		if ( addToHomeConfig ) {
-			for ( i in addToHomeConfig ) {
-				options[i] = addToHomeConfig[i];
+			for (var i in addToHomeConfig ) {
+                if (options.hasOwnProperty(i)) {
+                    options[i] = addToHomeConfig[i];
+                }
 			}
 		}
 
@@ -75,7 +83,9 @@ var addToHome = function (w, addToHomeConfig) {
 
 	function loaded () {
 
-		if ( !overrideChecks && hasClosed ) return;
+		if ( !overrideChecks && hasClosed ) {
+            return;
+        }
 
 		var touchIcon = '',
 			platform = nav.platform.split(' ')[0],
@@ -83,12 +93,13 @@ var addToHome = function (w, addToHomeConfig) {
 
         // If user is launching from the bookmark (the tracking vars will be present)
         // do not show the prompt and add the cookie to prevent it from showing again.
-        if(
-            parsedUri.queryKey.utm_source === 'web-app' &&
-            parsedUri.queryKey.utm_medium === 'mobile-app' &&
-            parsedUri.queryKey.utm_campaign === 'ios'
-        ) {
-            $.cookie('add2home-closed', 1,{ expires: 30 } )
+        if (parsedUri.queryKey[options.addedFlagName] === options.addedFlagValue) {
+            $.cookie('add2home-closed', 1, { expires: 30 });
+            fireTrackEvent(
+                'Clicks from Mobile Shortcut',
+                'clicks from mobile home screen shortcut',
+                w.location.href
+            );
             return;
         }
 
@@ -123,22 +134,26 @@ var addToHome = function (w, addToHomeConfig) {
 		document.querySelector(options.addTo).appendChild(balloon);
 
 		// Add the close action
-		if ( options.closeButton ) balloon.addEventListener('click', clicked, false);
+		if ( options.closeButton ) {
+            balloon.addEventListener('click', clicked, false);
+        }
 
-		if ( !isIPad && OSVersion >= 6 ) window.addEventListener('orientationchange', orientationCheck, false);
+		if ( !isIPad && OSVersion >= 6 ) {
+            window.addEventListener('orientationchange', orientationCheck, false);
+        }
 
-        w._gas.push([
-            '_trackEvent',
-            options.trackingCategory,
-            'Web App - Displayed prompt to install',
-            'ad text: ' + options.headerText + ', ' + options.message,
-            null,
-            true
-        ]);
-//        addTrackingVariables();
+        fireTrackEvent(options.trackingCategory, 'Web App - Displayed prompt to install', 'ad text: ' + options.headerText + ', ' + options.message);
+        addTrackingVariables();
         setTitle();
 		setTimeout(show, options.startDelay);
 	}
+
+    function fireTrackEvent(category, action, label) {
+        if (!category || !action || !label) {
+            return false;
+        }
+        w._gas.push(['_trackEvent', category, action, label, null, true]);
+    }
 
 	function show () {
 		var duration,
@@ -198,8 +213,8 @@ var addToHome = function (w, addToHomeConfig) {
 			}
 		}
 
-		balloon.offsetHeight;	// repaint trick
-		balloon.style.webkitTransitionDuration = duration;
+		balloon.offsetHeight;	// repaint trick: http://stackoverflow.com/questions/3485365/how-can-i-force-webkit-to-redraw-repaint-to-propagate-style-changes
+        balloon.style.webkitTransitionDuration = duration;
 		balloon.style.opacity = '1';
 		balloon.style.webkitTransform = 'translate3d(0,0,0)';
 		balloon.addEventListener('webkitTransitionEnd', transitionEnd, false);
@@ -208,7 +223,9 @@ var addToHome = function (w, addToHomeConfig) {
 	}
 
 	function manualShow (override) {
-		if ( !isIDevice || balloon ) return;
+		if ( !isIDevice || balloon ) {
+            return;
+        }
 
 		overrideChecks = override;
 		loaded();
@@ -220,15 +237,21 @@ var addToHome = function (w, addToHomeConfig) {
 		closeTimeout = null;
 
 		// check if the popup is displayed and prevent errors
-		if ( !balloon ) return;
+		if ( !balloon ) {
+            return;
+        }
 
 		var posY = 0,
 			posX = 0,
 			opacity = '1',
 			duration = '0';
 
-		if ( options.closeButton ) balloon.removeEventListener('click', clicked, false);
-		if ( !isIPad && OSVersion >= 6 ) window.removeEventListener('orientationchange', orientationCheck, false);
+		if ( options.closeButton ) {
+            balloon.removeEventListener('click', clicked, false);
+        }
+		if ( !isIPad && OSVersion >= 6 ) {
+            window.removeEventListener('orientationchange', orientationCheck, false);
+        }
 
 		if ( OSVersion < 5 ) {
 			posY = isIPad ? w.scrollY - startY : w.scrollY + w.innerHeight - startY;
@@ -267,21 +290,18 @@ var addToHome = function (w, addToHomeConfig) {
 		balloon.style.opacity = opacity;
 		balloon.style.webkitTransitionDuration = duration;
 		balloon.style.webkitTransform = 'translate3d(' + posX + 'px,' + posY + 'px,0)';
-  //      removeTrackingVariables();
+        removeTrackingVariables();
         resetTitle();
 	}
 
 
 	function clicked () {
-        $.cookie('add2home-closed', 1,{ expires: 30 } )
-        w._gas.push([
-            '_trackEvent',
+        $.cookie('add2home-closed', 1,{ expires: 30 });
+        fireTrackEvent(
             options.trackingCategory,
             'Web App - User closed prompt to install',
-            'ad text: ' + options.headerText + ', ' + options.message,
-            null,
-            true
-        ]);
+            'ad text: ' + options.headerText + ', ' + options.message
+        );
 		close();
 	}
 
@@ -299,7 +319,9 @@ var addToHome = function (w, addToHomeConfig) {
 		}
 
 		// On iOS 4 we start checking the element position
-		if ( OSVersion < 5 && closeTimeout ) positionInterval = setInterval(setPosition, options.iterations);
+		if ( OSVersion < 5 && closeTimeout ) {
+            positionInterval = setInterval(setPosition, options.iterations);
+        }
 	}
 
 	function setPosition () {
@@ -308,15 +330,11 @@ var addToHome = function (w, addToHomeConfig) {
 			posX = isIPad ? w.scrollX - startX : w.scrollX + Math.round((w.innerWidth - balloon.offsetWidth) / 2) - startX;
 
 		// Screen didn't move
-		if ( posY == matrix.m42 && posX == matrix.m41 ) return;
+		if ( posY === matrix.m42 && posX === matrix.m41 ) {
+            return;
+        }
 
 		balloon.style.webkitTransform = 'translate3d(' + posX + 'px,' + posY + 'px,0)';
-	}
-
-	// Clear local and session storages (this is useful primarily in development)
-	function reset () {
-		w.localStorage.removeItem('addToHome');
-		w.sessionStorage.removeItem('addToHomeSession');
 	}
 
 	function orientationCheck () {
@@ -339,9 +357,7 @@ var addToHome = function (w, addToHomeConfig) {
             newUri;
         currentUri = w.location.pathname;
         newUri = parsedUri.query ? parsedUri.path + '?' + parsedUri.query : parsedUri.path;
-        newUri = updateQueryStringParameter(newUri, 'utm_source', 'web-app' );
-        newUri = updateQueryStringParameter(newUri, 'utm_medium', 'mobile-app' );
-        newUri = updateQueryStringParameter(newUri, 'utm_campaign', 'ios' );
+        newUri = updateQueryStringParameter(newUri, options.addedFlagName, options.addedFlagValue);
 
         w.history.replaceState({}, '', newUri);
     }
@@ -364,10 +380,10 @@ var addToHome = function (w, addToHomeConfig) {
 	return {
 		show: manualShow,
 		close: close,
-		reset: reset,
         clicked: clicked
 	};
-}
+};
+
     $(function () {
         dibs.createNamespace('dibs.addToHome', addToHome);
         $.publish('addToHome:loaded');
