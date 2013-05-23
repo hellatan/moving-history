@@ -135,7 +135,7 @@ var addToHome = function (w, addToHomeConfig) {
             null,
             true
         ]);
-        addTrackingVariables();
+//        addTrackingVariables();
         setTitle();
 		setTimeout(show, options.startDelay);
 	}
@@ -267,7 +267,7 @@ var addToHome = function (w, addToHomeConfig) {
 		balloon.style.opacity = opacity;
 		balloon.style.webkitTransitionDuration = duration;
 		balloon.style.webkitTransform = 'translate3d(' + posX + 'px,' + posY + 'px,0)';
-        removeTrackingVariables();
+  //      removeTrackingVariables();
         resetTitle();
 	}
 
