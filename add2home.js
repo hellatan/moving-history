@@ -110,7 +110,6 @@ var addToHome = function (w, addToHomeConfig) {
         // If user is launching from the bookmark (the tracking vars will be present)
         // do not show the prompt and add the cookie to prevent it from showing again.
         if (parsedUri.queryKey[options.addedFlagName] === options.addedFlagValue) {
-            console.log('query key: ', parsedUri);
             // remove mobileBookmark=true from url
             delete parsedUri.queryKey[options.addedFlagName];
             var queryParams = [];
