@@ -96,6 +96,7 @@ var addToHome = function (w, addToHomeConfig) {
                 'Web App - User opened home screen shortcut',
                 w.location.href
             );
+            return;
         }
 
 		if ( !overrideChecks && hasClosed ) {
