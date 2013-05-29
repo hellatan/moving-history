@@ -83,12 +83,8 @@ var addToHome = function (w, addToHomeConfig) {
 
 	function loaded () {
 
-		if ( !overrideChecks && hasClosed ) {
-            return;
-        }
-
-		var touchIcon = '',
-			platform = nav.platform.split(' ')[0],
+        var touchIcon = '',
+            platform = nav.platform.split(' ')[0],
             parsedUri = dibs.parseUri(w.location.href);
 
         // If user is launching from the bookmark (the tracking vars will be present)
@@ -96,10 +92,13 @@ var addToHome = function (w, addToHomeConfig) {
         if (parsedUri.queryKey[options.addedFlagName] === options.addedFlagValue) {
             $.cookie('add2home-closed', 1, { expires: 30 });
             fireTrackEvent(
-                'Clicks from Mobile Shortcut',
-                'clicks from mobile home screen shortcut',
+                options.trackingCategory,
+                'Web App - User opened home screen shortcut',
                 w.location.href
             );
+        }
+
+		if ( !overrideChecks && hasClosed ) {
             return;
         }
 
