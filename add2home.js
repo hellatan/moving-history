@@ -157,7 +157,7 @@ var addToHome = function (w, addToHomeConfig) {
 
 		balloon.className = (isIPad ? 'addToHomeIpad' : 'addToHomeIphone') + (touchIcon ? ' addToHomeWide' : '');
 		balloonContent.innerHTML += touchIcon +
-			options.message.replace('%device', platform).replace('%icon', OSVersion >= 4.2 ? '<span class="addToHomeShare"></span>' : '<span class="addToHomePlus">+</span>') +
+            options.message.replace('%device', platform).replace('%icon', OSVersion >= 4.2 ? '<span class="addToHomeShare"></span>' : '<span class="addToHomePlus">+</span>') +
 			(options.arrow ? '<span class="addToHomeArrow"></span>' : '') +
 			(options.closeButton ? '<span class="addToHomeClose">\u00D7</span>' : '');
 
@@ -384,15 +384,29 @@ var addToHome = function (w, addToHomeConfig) {
     }
 
     function addTrackingVariables() {
-        var parsedUri = dibs.parseUri(w.location.pathname),
+        var parsedUri = dibs.parseUri(w.location.href),
             newUri;
-        currentUri = w.location.pathname;
         newUri = parsedUri.query ? parsedUri.path + '?' + parsedUri.query : parsedUri.path;
         newUri = updateQueryStringParameter(newUri, options.addedFlagName, options.addedFlagValue);
-
         updateHistory(newUri);
     }
+
     function removeTrackingVariables() {
+        /*
+
+            VERY REDUNDANT FOR NOW - loaded() METHOD HAS SAME CODE
+            NEED TO MAKE THIS DRY
+
+         */
+        var parsedUri = dibs.parseUri(w.location.href);
+        delete parsedUri.queryKey[options.addedFlagName];
+        var queryParams = [];
+        for (var p in parsedUri.queryKey) {
+            if (parsedUri.queryKey.hasOwnProperty(p)) {
+                queryParams.push(p + '=' + parsedUri.queryKey[p]);
+            }
+        }
+        currentUri = w.location.pathname + (queryParams.length ? "?" + queryParams.join('&') : "");
         updateHistory(currentUri);
     }
     function updateHistory(uri) {
