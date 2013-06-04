@@ -64,7 +64,8 @@ var addToHome = function (w, addToHomeConfig) {
 			closeButton: true,			// Let the user close the balloon
 			iterations: 100,			// Internal/debug use
             addTo: 'body',               // Append popup to this element
-            domain: ".1stdibs.com", // domain to use for cookies
+            cookieDomain: ".1stdibs.devbox", // domain to use for cookies
+            cookiePath: "/",            // path to base cookie off of
             trackingCategory: 'Mobile prompts',
             appTitle: '1stdibs',
             addedFlagName: 'mobileBookmark', // The query param name to look for to see if user came froma  mobile bookmark
@@ -121,7 +122,7 @@ var addToHome = function (w, addToHomeConfig) {
             }
             currentUri = w.location.pathname + (queryParams.length ? "?" + queryParams.join('&') : "");
             updateHistory(currentUri);
-            $.cookie('add2home-closed', 1, { expires: 30, domain: options.domain });
+            $.cookie('add2home-closed', 1, { expires: 30, domain: options.cookieDomain, path: options.cookiePath });
             fireTrackEvent(
                 options.trackingCategory,
                 'Web App - User opened home screen shortcut',
@@ -327,7 +328,7 @@ var addToHome = function (w, addToHomeConfig) {
 
 
 	function clicked () {
-        $.cookie('add2home-closed', 1,{ expires: 30, domain: options.domain });
+        $.cookie('add2home-closed', 1,{ expires: 30, domain: options.cookieDomain, path: options.cookiePath });
         fireTrackEvent(
             options.trackingCategory,
             'Web App - User closed prompt to install',
