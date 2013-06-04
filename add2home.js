@@ -64,7 +64,7 @@ var addToHome = function (w, addToHomeConfig) {
 			closeButton: true,			// Let the user close the balloon
 			iterations: 100,			// Internal/debug use
             addTo: 'body',               // Append popup to this element
-            cookieDomain: ".1stdibs.devbox", // domain to use for cookies
+            cookieDomain: "1stdibs.com", // domain to use for cookies
             cookiePath: "/",            // path to base cookie off of
             trackingCategory: 'Mobile prompts',
             appTitle: '1stdibs',
@@ -438,7 +438,7 @@ var addToHome = function (w, addToHomeConfig) {
         $.publish('addToHome:loaded');
     });
 
-    return addToHome(window, {});
+    return addToHome(window, { cookieDomain: window.location.href.indexOf('.devbox') > -1 ? '1stdibs.devbox' : '1stdibs.com' });
 
 }(jQuery));
 
