@@ -3,6 +3,26 @@
  * Released under MIT license, http://cubiq.org/license
  */
 
+/*
+    for testing purposes:
+
+    windowMock = $.extend(true, {}, window);
+    windowMock.navigator = {
+        platform: 'iPhone',
+        appVersion: "5.0 (iPhone; CPU iPhone OS 6_1_4 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25",
+    };
+    a = dibs.addToHome(windowMock);
+
+    You must have the GA tracking extension enabled and on (typically done in Chrome)
+        1. go to the homepage (or any page)
+            1. Copy and paste the code above into the console
+            2. This should result in "Web App - Displayed prompt to install" as the action
+        2. go to any page and add the query param mobileBookmark=true. Hit enter to make that
+           query param stick in the url
+            1. Copy and paste the code above into the console
+            2. This should result in "Web App - User opened home screen shortcut" as the action
+ */
+
 (function($) {
 "use strict";
 
@@ -44,6 +64,8 @@ var addToHome = function (w, addToHomeConfig) {
 			closeButton: true,			// Let the user close the balloon
 			iterations: 100,			// Internal/debug use
             addTo: 'body',               // Append popup to this element
+            cookieDomain: "1stdibs.com", // domain to use for cookies
+            cookiePath: "/",            // path to base cookie off of
             trackingCategory: 'Mobile prompts',
             appTitle: '1stdibs',
             addedFlagName: 'mobileBookmark', // The query param name to look for to see if user came froma  mobile bookmark
@@ -90,11 +112,21 @@ var addToHome = function (w, addToHomeConfig) {
         // If user is launching from the bookmark (the tracking vars will be present)
         // do not show the prompt and add the cookie to prevent it from showing again.
         if (parsedUri.queryKey[options.addedFlagName] === options.addedFlagValue) {
-            $.cookie('add2home-closed', 1, { expires: 30 });
+            // remove mobileBookmark=true from url
+            delete parsedUri.queryKey[options.addedFlagName];
+            var queryParams = [];
+            for (var p in parsedUri.queryKey) {
+                if (parsedUri.queryKey.hasOwnProperty(p)) {
+                    queryParams.push(p + '=' + parsedUri.queryKey[p]);
+                }
+            }
+            currentUri = w.location.pathname + (queryParams.length ? "?" + queryParams.join('&') : "");
+            updateHistory(currentUri);
+            $.cookie('add2home-closed', 1, { expires: 30, domain: options.cookieDomain, path: options.cookiePath });
             fireTrackEvent(
                 options.trackingCategory,
                 'Web App - User opened home screen shortcut',
-                w.location.href
+                w.location.protocol + '//' + w.location.host + currentUri
             );
             return;
         }
@@ -126,7 +158,7 @@ var addToHome = function (w, addToHomeConfig) {
 
 		balloon.className = (isIPad ? 'addToHomeIpad' : 'addToHomeIphone') + (touchIcon ? ' addToHomeWide' : '');
 		balloonContent.innerHTML += touchIcon +
-			options.message.replace('%device', platform).replace('%icon', OSVersion >= 4.2 ? '<span class="addToHomeShare"></span>' : '<span class="addToHomePlus">+</span>') +
+            options.message.replace('%device', platform).replace('%icon', OSVersion >= 4.2 ? '<span class="addToHomeShare"></span>' : '<span class="addToHomePlus">+</span>') +
 			(options.arrow ? '<span class="addToHomeArrow"></span>' : '') +
 			(options.closeButton ? '<span class="addToHomeClose">\u00D7</span>' : '');
 
@@ -296,7 +328,7 @@ var addToHome = function (w, addToHomeConfig) {
 
 
 	function clicked () {
-        $.cookie('add2home-closed', 1,{ expires: 30 });
+        $.cookie('add2home-closed', 1,{ expires: 30, domain: options.cookieDomain, path: options.cookiePath });
         fireTrackEvent(
             options.trackingCategory,
             'Web App - User closed prompt to install',
@@ -353,16 +385,33 @@ var addToHome = function (w, addToHomeConfig) {
     }
 
     function addTrackingVariables() {
-        var parsedUri = dibs.parseUri(w.location.pathname),
+        var parsedUri = dibs.parseUri(w.location.href),
             newUri;
-        currentUri = w.location.pathname;
         newUri = parsedUri.query ? parsedUri.path + '?' + parsedUri.query : parsedUri.path;
         newUri = updateQueryStringParameter(newUri, options.addedFlagName, options.addedFlagValue);
-
-        w.history.replaceState({}, '', newUri);
+        updateHistory(newUri);
     }
+
     function removeTrackingVariables() {
-        w.history.replaceState({}, '', currentUri);
+        /*
+
+            VERY REDUNDANT FOR NOW - loaded() METHOD HAS SAME CODE
+            NEED TO MAKE THIS DRY
+
+         */
+        var parsedUri = dibs.parseUri(w.location.href);
+        delete parsedUri.queryKey[options.addedFlagName];
+        var queryParams = [];
+        for (var p in parsedUri.queryKey) {
+            if (parsedUri.queryKey.hasOwnProperty(p)) {
+                queryParams.push(p + '=' + parsedUri.queryKey[p]);
+            }
+        }
+        currentUri = w.location.pathname + (queryParams.length ? "?" + queryParams.join('&') : "");
+        updateHistory(currentUri);
+    }
+    function updateHistory(uri) {
+        w.history.replaceState({}, '', uri);
     }
 
     function setTitle() {
@@ -389,7 +438,7 @@ var addToHome = function (w, addToHomeConfig) {
         $.publish('addToHome:loaded');
     });
 
-    return addToHome(window, {});
+    return addToHome(window, { cookieDomain: window.location.href.indexOf('.devbox') > -1 ? '1stdibs.devbox' : '1stdibs.com' });
 
 }(jQuery));
 
