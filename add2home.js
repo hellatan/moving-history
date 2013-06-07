@@ -49,29 +49,51 @@ var addToHome = function (w, addToHomeConfig) {
 
 
 		options = {
-			autostart: true,			// Automatically open the balloon
-			returningVisitor: false,	// Show the balloon to returning visitors only (setting this to true is HIGHLY RECCOMENDED)
-			animationIn: 'fade',		// drop || bubble || fade
-			animationOut: 'fade',		// drop || bubble || fade
-			startDelay: 2000,			// 2 seconds from page load before the balloon appears
-			lifespan: 15000,			// 15 seconds before it is automatically destroyed
-			bottomOffset: 14,			// Distance of the balloon from bottom
-			expire: 0,					// Minutes to wait before showing the popup again (0 = always displayed)
-			message: 'Tap %icon then select "Add to Home Screen" now.',
-            headerText:'Add 1stdibs to your homescreen', // Header message
-			touchIcon: true,			// Display the touch icon
-			arrow: true,				// Display the balloon arrow
-			closeButton: true,			// Let the user close the balloon
-			iterations: 100,			// Internal/debug use
-            addTo: 'body',               // Append popup to this element
-            cookieDomain: "1stdibs.com", // domain to use for cookies
-            cookiePath: "/",            // path to base cookie off of
+            // Automatically open the balloon
+            autostart: true,
+            // Show the balloon to returning visitors only (setting this to true is HIGHLY RECCOMENDED)
+            returningVisitor: false,
+            // drop || bubble || fade
+            animationIn: 'fade',
+            // drop || bubble || fade
+            animationOut: 'fade',
+            // 2 seconds from page load before the balloon appears
+            startDelay: 2000,
+            // 15 seconds before it is automatically destroyed
+            lifespan: 15000,
+            // Distance of the balloon from bottom
+            bottomOffset: 14,
+            // Minutes to wait before showing the popup again (0 = always displayed)
+            expire: 0,
+            message: 'Tap %icon then select "Add to Home Screen" now.',
+            // Header message
+            headerText:'Add 1stdibs to your homescreen',
+            // Display the touch icon
+            touchIcon: true,
+            // Display the balloon arrow
+            arrow: true,
+            // Let the user close the balloon
+            closeButton: true,
+            // Internal/debug use
+            iterations: 100,
+
+            // Append popup to this element
+            addTo: 'body',
+            // --- 1stdibs additions
+            // domain to use for cookies
+            cookieDomain: "1stdibs.com",
+            // path to base cookie off of
+            cookiePath: "/",
+            // if url params are present, do not fire balloon
+            ignoreParams: ['modal'], //
             trackingCategory: 'Mobile prompts',
             appTitle: '1stdibs',
-            addedFlagName: 'mobileBookmark', // The query param name to look for to see if user came froma  mobile bookmark
-            addedFlagValue: 'true',  // the query param value to check against
+            // The query param name to look for to see if user came from a mobile bookmark
+            addedFlagName: 'mobileBookmark',
+            // the query param value to check against
+            addedFlagValue: 'true',
             addedTrackingCategory: 'Clicks from Mobile Shortcut'
-		};
+        };
 
 	function init () {
 		// Preliminary check, all further checks are performed on iDevices only
@@ -97,7 +119,7 @@ var addToHome = function (w, addToHomeConfig) {
 
         hasClosed = $.cookie('add2home-closed');
 
-        if (options.autostart) {
+        if (options.autostart && !checkIgnoreParams()) {
             loaded();
         }
 
@@ -185,6 +207,28 @@ var addToHome = function (w, addToHomeConfig) {
             return false;
         }
         w._gas.push(['_trackEvent', category, action, label, null, true]);
+    }
+
+    /**
+     * checks to see if url params set in the options.ignoreParams array are
+     * present in the search string if so, do not show the bubble, otherwise proceed
+     * @returns {boolean}
+     */
+    function checkIgnoreParams() {
+        var queries = (w.location.search || "").substring(1);
+        if (queries) {
+            var splitted = queries.split('&');
+            for (var i = 0, len = splitted.length; i < len; i++) {
+                var pair = splitted[i].split('='),
+                    // only care about the left side
+                    left = pair[0];
+                // $.inArray returns index of 'left'
+                if ($.inArray(left, options.ignoreParams) > -1) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 	function show () {
@@ -433,12 +477,21 @@ var addToHome = function (w, addToHomeConfig) {
 	};
 };
 
+    var ret = addToHome(window, {
+        cookieDomain: window.location.href.indexOf('.devbox') > -1 ? '1stdibs.devbox' : '1stdibs.com',
+        ignoreParams: ['modal']
+    });
+
     $(function () {
         dibs.createNamespace('dibs.addToHome', addToHome);
         $.publish('addToHome:loaded');
+        // $.publish('addToHome:force-close') to close the balloon from different UI elements (ui, modal popup, navigation, etc)
+        $.subscribe('addToHome:force-close', function () {
+            ret.close();
+        });
     });
 
-    return addToHome(window, { cookieDomain: window.location.href.indexOf('.devbox') > -1 ? '1stdibs.devbox' : '1stdibs.com' });
+    return ret;
 
 }(jQuery));
 
