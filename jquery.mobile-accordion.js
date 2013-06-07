@@ -103,7 +103,7 @@
             setItem = function (id, state) {
                 // http://stackoverflow.com/questions/5887326/is-localstorage-reliable-on-an-ipad
                 // remove the item before setting the item again
-                options.storageSettings.method.deleteItem.call(options.storageSettings.method);
+                options.storageSettings.method.deleteItem.call(options.storageSettings.method, id);
                 options.storageSettings.method.setItem.call(options.storageSettings.method, id, state);
             };
         } else if (typeof options.storageSettings.method === 'function') {
