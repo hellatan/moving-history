@@ -123,7 +123,7 @@
                         $modalClose = $close;
                         $close_link.append(close_btn.icon, close_btn.screen);
                         $close.html($close_link);
-                        $modalContent.prepend($close);
+                        $modalContent.append($close);
                     }
                     if (!options.toggle.mayClose) {
                         $modalClose.hide();
