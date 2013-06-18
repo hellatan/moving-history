@@ -123,7 +123,7 @@
                         $modalClose = $close;
                         $close_link.append(close_btn.icon, close_btn.screen);
                         $close.html($close_link);
-                        $modalContent.prepend($close);
+                        $modalContent.append($close);
                     }
                     if (!options.toggle.mayClose) {
                         $modalClose.hide();
@@ -176,14 +176,19 @@
             return this;
         };
 
-        this.show = function () {
+        /**
+         * Opens up a modal
+         * @param eventName {String} Optional. The event to fire, otherwise defaults to "modal:show"
+         * @returns {*}
+         */
+        this.show = function (eventName) {
             // Prevent page scrolling
             $body.addClass('modal-open');
 
             $container.addClass(c_name).show();
             is_open = true;
             center();
-            $.publish('modal:show', [api, $modalContent]);
+            $.publish((eventName || 'modal:show'), [api, $modalContent]);
             return this;
         };
 
@@ -205,7 +210,7 @@
             options.toggle.mayClose = true;
             $modalClose.show();
             return this;
-        }
+        };
 
         this.disableClose = function () {
             $modalClose.hide();
