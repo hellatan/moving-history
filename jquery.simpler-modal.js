@@ -39,7 +39,7 @@
 
     "use strict";
 
-    if ($.fn.dibsmodal) {
+    if ($.fn.dibsModal) {
         return;
     }
 
@@ -158,7 +158,6 @@
                     $modalBg.bind('click', function (e) {
                         e.preventDefault();
                         $.publish('modal:close', e);
-    //						api.close(e);
                     });
                     return this;
                 }
